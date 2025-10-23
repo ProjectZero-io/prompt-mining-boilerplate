@@ -1,2 +1,2 @@
-# prompt-mining-nexera
+# prompt-mining-boilerplate
 prompt mining package
