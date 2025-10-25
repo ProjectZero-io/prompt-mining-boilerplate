@@ -168,7 +168,6 @@ curl -X POST http://localhost:3000/api/prompts/mint \
     "prompt": "What is the capital of France?",
     "author": "0xYourWalletAddress",
     "activityPoints": "10",
-    "signature": "<PZERO-SIGNATURE>"
   }'
 ```
 
