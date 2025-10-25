@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Mining - Metamask Integration Example</title>
+    <script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 32px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+
+        .wallet-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .wallet-info {
+            display: none;
+        }
+
+        .wallet-info.connected {
+            display: block;
+        }
+
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+        }
+
+        .status {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .address {
+            font-family: 'Courier New', monospace;
+            background: #667eea;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .balance {
+            margin-top: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        .tx-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .tx-link:hover {
+            text-decoration: underline;
+        }
+
+        .help-text {
+            font-size: 12px;
+            color: #666;
+            margin-top: 4px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-left: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎁 Prompt Mining Demo</h1>
+        <p class="subtitle">Earn Activity Points for Quality Prompts</p>
+
+        <!-- Wallet Connection -->
+        <div class="wallet-section">
+            <h3>💼 Wallet Connection</h3>
+            <button id="connectBtn" onclick="connectWallet()">Connect Metamask</button>
+
+            <div id="walletInfo" class="wallet-info">
+                <p><strong>Connected:</strong> <span class="address" id="walletAddress"></span></p>
+                <p class="balance">Balance: <span id="apBalance">Loading...</span> Activity Points</p>
+            </div>
+        </div>
+
+        <!-- Status Messages -->
+        <div id="status" class="status"></div>
+
+        <!-- Prompt Submission Form -->
+        <form id="promptForm" onsubmit="submitPrompt(event)">
+            <div class="form-group">
+                <label for="prompt">Your Prompt</label>
+                <textarea
+                    id="prompt"
+                    placeholder="Enter your prompt here (e.g., 'Explain quantum computing in simple terms')"
+                    required
+                ></textarea>
+                <p class="help-text">Quality prompts earn more Activity Points!</p>
+            </div>
+
+            <div class="form-group">
+                <label for="apiKey">Backend API Key</label>
+                <input
+                    type="text"
+                    id="apiKey"
+                    placeholder="your-api-key-here"
+                    required
+                />
+                <p class="help-text">Get this from your backend administrator</p>
+            </div>
+
+            <button type="submit" id="submitBtn">Submit Prompt & Earn Rewards</button>
+        </form>
+    </div>
+
+    <script>
+        // Configuration
+        const CONFIG = {
+            BACKEND_URL: 'http://localhost:3000',  // Change to your backend URL
+            PROMPT_MINER_ADDRESS: '0x...', // Replace with actual contract address
+            ACTIVITY_POINTS_ADDRESS: '0x...', // Replace with actual contract address
+            CHAIN_ID: 72080, // Nexera testnet (update as needed)
+        };
+
+        let provider, signer, walletAddress;
+
+        /**
+         * Connect to Metamask wallet
+         */
+        async function connectWallet() {
+            try {
+                // Check if Metamask is installed
+                if (typeof window.ethereum === 'undefined') {
+                    showStatus('error', 'Metamask is not installed. Please install it from https://metamask.io');
+                    return;
+                }
+
+                // Request account access
+                const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                walletAddress = accounts[0];
+
+                // Initialize ethers provider
+                provider = new ethers.providers.Web3Provider(window.ethereum);
+                signer = provider.getSigner();
+
+                // Check network
+                const network = await provider.getNetwork();
+                if (network.chainId !== CONFIG.CHAIN_ID) {
+                    showStatus('error', `Please switch to the correct network (Chain ID: ${CONFIG.CHAIN_ID})`);
+                    return;
+                }
+
+                // Update UI
+                document.getElementById('walletAddress').textContent = formatAddress(walletAddress);
+                document.getElementById('walletInfo').classList.add('connected');
+                document.getElementById('connectBtn').style.display = 'none';
+
+                // Load balance
+                await loadActivityPointsBalance();
+
+                showStatus('success', 'Wallet connected successfully!');
+            } catch (error) {
+                console.error('Error connecting wallet:', error);
+                showStatus('error', `Failed to connect wallet: ${error.message}`);
+            }
+        }
+
+        /**
+         * Load user's Activity Points balance
+         */
+        async function loadActivityPointsBalance() {
+            try {
+                // Simple ERC20 ABI for balanceOf
+                const ERC20_ABI = [
+                    'function balanceOf(address) view returns (uint256)',
+                    'function symbol() view returns (string)'
+                ];
+
+                const apContract = new ethers.Contract(
+                    CONFIG.ACTIVITY_POINTS_ADDRESS,
+                    ERC20_ABI,
+                    provider
+                );
+
+                const balance = await apContract.balanceOf(walletAddress);
+                const symbol = await apContract.symbol();
+
+                const formattedBalance = ethers.utils.formatEther(balance);
+                document.getElementById('apBalance').textContent = `${formattedBalance} ${symbol}`;
+            } catch (error) {
+                console.error('Error loading balance:', error);
+                document.getElementById('apBalance').textContent = 'Error loading balance';
+            }
+        }
+
+        /**
+         * Submit prompt and mint with user signature
+         */
+        async function submitPrompt(event) {
+            event.preventDefault();
+
+            if (!walletAddress) {
+                showStatus('error', 'Please connect your wallet first');
+                return;
+            }
+
+            const prompt = document.getElementById('prompt').value.trim();
+            const apiKey = document.getElementById('apiKey').value.trim();
+
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = 'Processing<span class="loading"></span>';
+
+            try {
+                // Step 1: Get authorization from backend
+                showStatus('info', 'Step 1/3: Getting authorization from backend...');
+
+                const authResponse = await fetch(`${CONFIG.BACKEND_URL}/api/prompts/authorize`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'x-api-key': apiKey
+                    },
+                    body: JSON.stringify({
+                        prompt: prompt,
+                        author: walletAddress,
+                        activityPoints: '10' // Backend determines this in production
+                    })
+                });
+
+                if (!authResponse.ok) {
+                    const error = await authResponse.json();
+                    throw new Error(error.error?.message || 'Authorization failed');
+                }
+
+                const authData = await authResponse.json();
+                const { authorization, mintData } = authData.data;
+
+                // Step 2: User signs transaction with Metamask
+                showStatus('info', 'Step 2/3: Please sign the transaction in Metamask...');
+
+                // PromptMiner contract ABI (minimal)
+                const PROMPT_MINER_ABI = [
+                    'function mint(string prompt, address author, bytes encodedPoints, bytes signature, string nonce) returns (bool)'
+                ];
+
+                const promptMinerContract = new ethers.Contract(
+                    CONFIG.PROMPT_MINER_ADDRESS,
+                    PROMPT_MINER_ABI,
+                    signer
+                );
+
+                // Encode activity points
+                const encodedPoints = ethers.utils.defaultAbiCoder.encode(
+                    ['uint256'],
+                    [ethers.utils.parseEther(mintData.activityPoints)]
+                );
+
+                // Send transaction (user signs with Metamask)
+                const tx = await promptMinerContract.mint(
+                    mintData.prompt,
+                    mintData.author,
+                    encodedPoints,
+                    authorization.signature,
+                    authorization.nonce
+                );
+
+                // Step 3: Wait for confirmation
+                showStatus('info', `Step 3/3: Waiting for confirmation...<br>Transaction: ${formatAddress(tx.hash)}`);
+
+                const receipt = await tx.wait();
+
+                // Success!
+                showStatus('success', `
+                    ✅ Prompt minted successfully!<br>
+                    🎁 You've earned ${mintData.activityPoints} Activity Points!<br>
+                    <a href="https://explorer.nexera.network/tx/${tx.hash}" target="_blank" class="tx-link">View Transaction</a>
+                `);
+
+                // Reload balance
+                await loadActivityPointsBalance();
+
+                // Reset form
+                document.getElementById('promptForm').reset();
+
+            } catch (error) {
+                console.error('Error submitting prompt:', error);
+                showStatus('error', `Failed to submit prompt: ${error.message}`);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Prompt & Earn Rewards';
+            }
+        }
+
+        /**
+         * Show status message
+         */
+        function showStatus(type, message) {
+            const statusEl = document.getElementById('status');
+            statusEl.className = `status show ${type}`;
+            statusEl.innerHTML = message;
+        }
+
+        /**
+         * Format Ethereum address for display
+         */
+        function formatAddress(address) {
+            return `${address.slice(0, 6)}...${address.slice(-4)}`;
+        }
+
+        /**
+         * Handle account changes
+         */
+        if (window.ethereum) {
+            window.ethereum.on('accountsChanged', (accounts) => {
+                if (accounts.length === 0) {
+                    // User disconnected
+                    location.reload();
+                } else {
+                    // User switched accounts
+                    location.reload();
+                }
+            });
+
+            window.ethereum.on('chainChanged', () => {
+                // Reload on network change
+                location.reload();
+            });
+        }
+    </script>
+</body>
+</html>

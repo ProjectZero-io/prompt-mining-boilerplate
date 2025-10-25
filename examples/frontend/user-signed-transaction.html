@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User-Signed Transaction - Prompt Mining</title>
+
+  <!-- Load ethers.js v6 from CDN -->
+  <script src="https://unpkg.com/ethers@6.7.1/dist/ethers.umd.min.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .config-note {
+      background: #fff3cd;
+      border: 1px solid #ffc107;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 25px;
+      font-size: 13px;
+      color: #856404;
+    }
+
+    .config-note strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .section {
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s;
+    }
+
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .status {
+      margin-top: 20px;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .status.info {
+      background: #e3f2fd;
+      border: 1px solid #2196f3;
+      color: #1565c0;
+      display: block;
+    }
+
+    .status.success {
+      background: #e8f5e9;
+      border: 1px solid #4caf50;
+      color: #2e7d32;
+      display: block;
+    }
+
+    .status.error {
+      background: #ffebee;
+      border: 1px solid #f44336;
+      color: #c62828;
+      display: block;
+    }
+
+    .status.loading {
+      background: #fff3e0;
+      border: 1px solid #ff9800;
+      color: #e65100;
+      display: block;
+    }
+
+    .wallet-info {
+      background: #f5f5f5;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      font-size: 13px;
+    }
+
+    .wallet-info .address {
+      font-family: 'Courier New', monospace;
+      color: #667eea;
+      word-break: break-all;
+      font-weight: 600;
+    }
+
+    .tx-link {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .tx-link:hover {
+      text-decoration: underline;
+    }
+
+    .loader {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid #ff9800;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin-right: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .code-block {
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 10px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🚀 User-Signed Transaction</h1>
+    <p class="subtitle">Mint prompts and earn rewards using your Metamask wallet</p>
+
+    <div class="config-note">
+      <strong>⚠️ Configuration Required</strong>
+      Update the configuration section in this file's JavaScript with your:
+      <ul style="margin-top: 8px; margin-left: 20px;">
+        <li>Backend API URL</li>
+        <li>PromptMiner contract address</li>
+        <li>Chain ID (Nexera Testnet: 72080, Mainnet: 7208)</li>
+      </ul>
+    </div>
+
+    <!-- Wallet Connection -->
+    <div class="section">
+      <button id="connectBtn" onclick="connectWallet()">Connect Metamask</button>
+    </div>
+
+    <div id="walletInfo" class="wallet-info" style="display: none;">
+      <div><strong>Connected Address:</strong></div>
+      <div class="address" id="walletAddress"></div>
+    </div>
+
+    <!-- Prompt Input -->
+    <div class="section" id="promptSection" style="display: none;">
+      <label for="promptInput">Your Prompt</label>
+      <textarea
+        id="promptInput"
+        placeholder="Enter your prompt here... e.g., 'What is machine learning?'"
+      ></textarea>
+    </div>
+
+    <div class="section" id="rewardSection" style="display: none;">
+      <label for="rewardInput">Activity Points Reward</label>
+      <input
+        type="number"
+        id="rewardInput"
+        placeholder="10"
+        value="10"
+        min="1"
+      />
+      <small style="color: #666; display: block; margin-top: 5px;">
+        In production, this would be calculated by your backend
+      </small>
+    </div>
+
+    <!-- Submit Button -->
+    <div class="section" id="submitSection" style="display: none;">
+      <button id="submitBtn" onclick="mintPrompt()">
+        Mint Prompt & Earn Rewards
+      </button>
+    </div>
+
+    <!-- Status Messages -->
+    <div id="status" class="status"></div>
+  </div>
+
+  <script>
+    /**
+     * ========================================
+     * CONFIGURATION
+     * ========================================
+     *
+     * Update these values for your deployment:
+     */
+    const CONFIG = {
+      // Your backend API URL
+      BACKEND_API_URL: 'http://localhost:3000',
+
+      // PromptMiner contract address (get from your deployment)
+      PROMPT_MINER_ADDRESS: '0x0000000000000000000000000000000000000000', // UPDATE THIS
+
+      // Chain ID (72080 = Nexera testnet, 7208 = Nexera mainnet)
+      CHAIN_ID: 72080,
+
+      // Block explorer URL for transaction links
+      BLOCK_EXPLORER_URL: 'https://explorer.testnet.nexera.network',
+
+      // Optional: API key for backend authentication
+      API_KEY: '' // Leave empty if not using authentication
+    };
+
+    /**
+     * PromptMiner contract ABI (minimal - only the mint function)
+     * This is the interface needed to call the mint function
+     */
+    const PROMPT_MINER_ABI = [
+      {
+        "inputs": [
+          {"internalType": "string", "name": "prompt", "type": "string"},
+          {"internalType": "address", "name": "author", "type": "address"},
+          {"internalType": "bytes", "name": "encodedPoints", "type": "bytes"},
+          {"internalType": "bytes", "name": "signature", "type": "bytes"},
+          {"internalType": "uint256", "name": "nonce", "type": "uint256"}
+        ],
+        "name": "mint",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ];
+
+    // Global state
+    let provider = null;
+    let signer = null;
+    let userAddress = null;
+
+    /**
+     * Connect to Metamask wallet
+     *
+     * This function:
+     * 1. Checks if Metamask is installed
+     * 2. Requests account access
+     * 3. Verifies the correct network
+     * 4. Displays the connected wallet address
+     */
+    async function connectWallet() {
+      try {
+        showStatus('Connecting to Metamask...', 'loading');
+
+        // Check if Metamask is installed
+        console.log('Checking for Metamask... window.ethereum:', typeof window.ethereum);
+        if (typeof window.ethereum === 'undefined') {
+          console.error('Metamask not detected. window.ethereum is undefined');
+          throw new Error('Metamask is not installed. Please install it from https://metamask.io');
+        }
+
+        console.log('Metamask detected! Provider:', window.ethereum);
+
+        // Create ethers provider from Metamask
+        provider = new ethers.BrowserProvider(window.ethereum);
+
+        // Request account access
+        await provider.send("eth_requestAccounts", []);
+
+        // Get the signer (wallet)
+        signer = await provider.getSigner();
+        userAddress = await signer.getAddress();
+
+        // Check if on correct network
+        const network = await provider.getNetwork();
+        if (Number(network.chainId) !== CONFIG.CHAIN_ID) {
+          throw new Error(
+            `Please switch to the correct network. Expected Chain ID: ${CONFIG.CHAIN_ID}, Current: ${network.chainId}`
+          );
+        }
+
+        // Update UI
+        document.getElementById('walletAddress').textContent = userAddress;
+        document.getElementById('walletInfo').style.display = 'block';
+        document.getElementById('promptSection').style.display = 'block';
+        document.getElementById('rewardSection').style.display = 'block';
+        document.getElementById('submitSection').style.display = 'block';
+        document.getElementById('connectBtn').textContent = 'Connected ✓';
+        document.getElementById('connectBtn').disabled = true;
+
+        showStatus(`Connected to ${userAddress}`, 'success');
+
+      } catch (error) {
+        console.error('Connection error:', error);
+        showStatus(`Connection failed: ${error.message}`, 'error');
+      }
+    }
+
+    /**
+     * Mint a prompt with user-signed transaction
+     *
+     * This function orchestrates the complete flow:
+     * 1. Get authorization from backend (backend sends hash only to PZERO)
+     * 2. User signs transaction with Metamask (includes full prompt)
+     * 3. Transaction is submitted to blockchain
+     * 4. Wait for confirmation
+     * 5. Display success with transaction link
+     */
+    async function mintPrompt() {
+      try {
+        // Validate inputs
+        const prompt = document.getElementById('promptInput').value.trim();
+        const activityPoints = document.getElementById('rewardInput').value;
+
+        if (!prompt) {
+          throw new Error('Please enter a prompt');
+        }
+
+        if (!activityPoints || activityPoints <= 0) {
+          throw new Error('Please enter a valid reward amount');
+        }
+
+        if (!userAddress) {
+          throw new Error('Please connect your wallet first');
+        }
+
+        // Validate contract address
+        if (CONFIG.PROMPT_MINER_ADDRESS === '0x0000000000000000000000000000000000000000') {
+          throw new Error('Please update PROMPT_MINER_ADDRESS in the configuration');
+        }
+
+        showStatus('Step 1/4: Requesting authorization from backend...', 'loading');
+
+        // Step 1: Request authorization from backend
+        // Backend will:
+        // - Hash the prompt locally
+        // - Send ONLY the hash to PZERO (NOT the full prompt)
+        // - Get authorization signature from PZERO
+        // - Return authorization + full prompt data to frontend
+        const authResponse = await fetch(`${CONFIG.BACKEND_API_URL}/api/prompts/authorize`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...(CONFIG.API_KEY && { 'x-api-key': CONFIG.API_KEY })
+          },
+          body: JSON.stringify({
+            prompt,
+            author: userAddress,
+            activityPoints
+          })
+        });
+
+        if (!authResponse.ok) {
+          const errorData = await authResponse.json();
+          throw new Error(errorData.error || `Backend error: ${authResponse.status}`);
+        }
+
+        const authData = await authResponse.json();
+        console.log('Authorization received:', authData);
+
+        // Extract authorization data
+        const { promptHash, authorization, mintData } = authData.data;
+
+        showStatus('Step 2/4: Preparing transaction for Metamask...', 'loading');
+
+        // Step 2: Create contract instance with ethers.js
+        const promptMinerContract = new ethers.Contract(
+          CONFIG.PROMPT_MINER_ADDRESS,
+          PROMPT_MINER_ABI,
+          signer
+        );
+
+        // Step 3: Encode activity points (uint256 in bytes)
+        const encodedPoints = ethers.AbiCoder.defaultAbiCoder().encode(
+          ['uint256'],
+          [ethers.parseEther(mintData.activityPoints)]
+        );
+
+        showStatus('Step 3/4: Waiting for Metamask signature...', 'loading');
+
+        // Step 4: User signs transaction with Metamask
+        // This transaction includes:
+        // - Full prompt text (NOT sent to PZERO!)
+        // - PZERO authorization signature
+        // - User's address (author)
+        // - Activity points reward amount
+        const tx = await promptMinerContract.mint(
+          mintData.prompt,           // Full prompt text
+          mintData.author,           // User's address
+          encodedPoints,             // Encoded reward amount
+          authorization.signature,   // PZERO authorization signature
+          authorization.nonce        // PZERO nonce (prevents replay)
+        );
+
+        showStatus(
+          `Step 4/4: Transaction submitted! Waiting for confirmation...<br>` +
+          `<small>TX Hash: ${tx.hash}</small>`,
+          'loading'
+        );
+
+        // Step 5: Wait for transaction confirmation
+        const receipt = await tx.wait();
+
+        console.log('Transaction confirmed:', receipt);
+
+        // Step 6: Show success
+        const explorerUrl = `${CONFIG.BLOCK_EXPLORER_URL}/tx/${receipt.hash}`;
+        showStatus(
+          `✅ Prompt minted successfully!<br><br>` +
+          `<strong>Transaction Hash:</strong><br>` +
+          `<a href="${explorerUrl}" target="_blank" class="tx-link">${receipt.hash}</a><br><br>` +
+          `<strong>Prompt Hash:</strong><br>` +
+          `<div class="code-block">${promptHash}</div><br>` +
+          `<strong>Block Number:</strong> ${receipt.blockNumber}<br>` +
+          `<strong>Rewards:</strong> ${mintData.activityPoints} Activity Points`,
+          'success'
+        );
+
+        // Reset form
+        document.getElementById('promptInput').value = '';
+        document.getElementById('rewardInput').value = '10';
+
+      } catch (error) {
+        console.error('Minting error:', error);
+
+        let errorMessage = error.message;
+
+        // Handle specific error cases
+        if (error.code === 'ACTION_REJECTED') {
+          errorMessage = 'Transaction was rejected by user';
+        } else if (error.message.includes('insufficient funds')) {
+          errorMessage = 'Insufficient funds for gas fees. Please add more tNXRA (testnet) or NXRA (mainnet) to your wallet.';
+        } else if (error.message.includes('network')) {
+          errorMessage = 'Network error. Please check your internet connection and RPC endpoint.';
+        }
+
+        showStatus(`❌ Error: ${errorMessage}`, 'error');
+      }
+    }
+
+    /**
+     * Display status message to user
+     *
+     * @param {string} message - Message to display (can include HTML)
+     * @param {string} type - Type of message: 'info', 'success', 'error', 'loading'
+     */
+    function showStatus(message, type) {
+      const statusEl = document.getElementById('status');
+      statusEl.className = `status ${type}`;
+
+      if (type === 'loading') {
+        statusEl.innerHTML = `<span class="loader"></span>${message}`;
+      } else {
+        statusEl.innerHTML = message;
+      }
+    }
+
+    /**
+     * Listen for account changes in Metamask
+     */
+    if (typeof window.ethereum !== 'undefined') {
+      window.ethereum.on('accountsChanged', (accounts) => {
+        if (accounts.length === 0) {
+          // User disconnected wallet
+          location.reload();
+        } else if (accounts[0] !== userAddress) {
+          // User switched account
+          location.reload();
+        }
+      });
+
+      window.ethereum.on('chainChanged', () => {
+        // User switched network
+        location.reload();
+      });
+    }
+
+    // Show configuration reminder on load
+    window.addEventListener('load', () => {
+      if (CONFIG.PROMPT_MINER_ADDRESS === '0x0000000000000000000000000000000000000000') {
+        showStatus(
+          '⚠️ Please update the configuration section in this file with your contract addresses and backend URL',
+          'info'
+        );
+      }
+    });
+  </script>
+</body>
+</html>

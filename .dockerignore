@@ -1,0 +1,74 @@
+# Dependencies (will be installed in Docker)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Package locks (npm ci will handle this)
+package-lock.json
+yarn.lock
+
+# Build output (will be generated in Docker)
+dist/
+build/
+*.tsbuildinfo
+
+# Environment variables (SECURITY: never include in image)
+.env
+.env.*
+.env.local
+.env.*.local
+
+# Git repository (unnecessary in image)
+.git/
+.gitignore
+.gitattributes
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+coverage/
+.nyc_output/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+jest.config.js
+
+# Logs
+logs/
+*.log
+
+# Temp files
+tmp/
+temp/
+
+# Documentation (not needed in runtime image)
+README.md
+CLAUDE.md
+.claude/
+docs/
+*.md
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Docker files (don't need to be in the image)
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Examples and bad examples (not needed in production)
+examples/
+bad-examples/
+
+# Scripts (not needed in production runtime)
+scripts/
