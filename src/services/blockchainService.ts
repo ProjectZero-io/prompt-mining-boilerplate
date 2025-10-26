@@ -2,8 +2,9 @@ import { ethers } from 'ethers';
 import {
   PromptMinerWithActivityPointsActionUpgradeable,
   PromptDO,
-  ActivityPoints,
+  ActivityPoints
 } from '@projectzero-io/prompt-mining-sdk';
+import type { PromptDOType, PromptMinerWithActivityPointsActionUpgradeableType, ActivityPointsType } from '@projectzero-io/prompt-mining-sdk';
 import { config } from '../config';
 import { PZeroAuthorization } from '../types';
 import { hashPrompt, encodeActivityPoints } from '../utils/crypto';
@@ -61,16 +62,15 @@ export function initializeBlockchain(): {
  *
  * @returns PromptMiner contract connected to wallet
  */
-function getPromptMinerContract(): ethers.Contract {
+function getPromptMinerContract(): PromptMinerWithActivityPointsActionUpgradeableType {
   if (!promptMinerContract) {
-    const { wallet: w } = initializeBlockchain();
     promptMinerContract = new PromptMinerWithActivityPointsActionUpgradeable(
       config.contracts.promptMiner
     );
   }
 
   const { wallet: w } = initializeBlockchain();
-  return promptMinerContract.contract.connect(w) as ethers.Contract;
+  return promptMinerContract.contract.connect(w);
 }
 
 /**
@@ -78,13 +78,13 @@ function getPromptMinerContract(): ethers.Contract {
  *
  * @returns PromptDO contract connected to provider
  */
-function getPromptDOContract(): ethers.Contract {
+function getPromptDOContract(): PromptDOType {
   if (!promptDOContract) {
     promptDOContract = new PromptDO(config.contracts.promptDO);
   }
 
   const { provider: p } = initializeBlockchain();
-  return promptDOContract.contract.connect(p) as ethers.Contract;
+  return promptDOContract.contract.connect(p);
 }
 
 /**
@@ -92,13 +92,13 @@ function getPromptDOContract(): ethers.Contract {
  *
  * @returns ActivityPoints contract connected to provider
  */
-function getActivityPointsContract(): ethers.Contract {
+function getActivityPointsContract(): ActivityPointsType {
   if (!activityPointsContract) {
     activityPointsContract = new ActivityPoints(config.contracts.activityPoints);
   }
 
   const { provider: p } = initializeBlockchain();
-  return activityPointsContract.contract.connect(p) as ethers.Contract;
+  return activityPointsContract.contract.connect(p);
 }
 
 /**
@@ -155,13 +155,12 @@ export async function mintPromptToBlockchain(
     // This uses the SDK's mint method which handles signature verification
     const tx = await contract.mint(
       prompt,            // Full prompt goes to blockchain
-      author,
+      "",                // Empty metadata for now
       encodedPoints,
       authorization.signature,
-      authorization.nonce,
       {
         // Gas estimation and limits
-        gasLimit: 500000, // Adjust based on contract complexity
+        // gasLimit: 500000, // Adjust based on contract complexity
       }
     );
 
@@ -171,9 +170,9 @@ export async function mintPromptToBlockchain(
     // Wait for transaction confirmation
     const receipt = await tx.wait();
 
-    console.log(`✅ Prompt minted! Block: ${receipt.blockNumber}`);
+    console.log(`✅ Prompt minted! Block: ${receipt!.blockNumber}`);
 
-    return receipt;
+    return receipt!;
   } catch (error: any) {
     console.error(`Blockchain mint failed:`, error.message);
 
