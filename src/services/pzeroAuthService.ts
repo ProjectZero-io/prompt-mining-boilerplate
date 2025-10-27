@@ -189,12 +189,14 @@ function handlePZeroApiError(error: unknown): never {
 export async function requestMintAuthorization(
   promptHash: string,
   author: string,
-  activityPoints: string
+  activityPoints: string,
+  signerAddress: string
 ): Promise<PZeroAuthorization> {
   const requestBody: PZeroMintAuthRequest = {
     promptHash, // ONLY hash, never full prompt
     author,
     activityPoints,
+    signerAddress,
     clientId: config.pzero.clientId,
     chainId: config.blockchain.chainId,
     timestamp: Date.now(),

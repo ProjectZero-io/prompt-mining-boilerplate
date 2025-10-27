@@ -141,6 +141,8 @@ export interface HealthCheckResponse {
 export interface PZeroMintAuthRequest {
   /** Keccak256 hash of the prompt (NOT the full prompt!) */
   promptHash: string;
+  /** Ethereum address of the contract signer */
+  signerAddress: string;
   /** Ethereum address of the prompt author */
   author: string;
   /** Amount of activity points to reward */
