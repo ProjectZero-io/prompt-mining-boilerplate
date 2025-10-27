@@ -6,6 +6,7 @@ import {
   PromptStatusResponse,
   ActivityPointsBalanceResponse,
 } from '../types';
+import { config } from '../config';
 
 /**
  * High-level orchestration service for prompt mining operations.
@@ -63,7 +64,8 @@ export async function mintPrompt(
   const authorization = await pzeroAuthService.requestMintAuthorization(
     promptHash,
     author,
-    activityPoints
+    activityPoints,
+    config.contracts.promptMiner
   );
   console.log(`   ✅ Authorization received: ${authorization.signature.slice(0, 10)}...`);
 
@@ -148,7 +150,8 @@ export async function authorizePromptMint(
   const authorization = await pzeroAuthService.requestMintAuthorization(
     promptHash,
     author,
-    activityPoints
+    activityPoints,
+    config.contracts.promptMiner
   );
   console.log(`   ✅ Authorization received: ${authorization.signature.slice(0, 10)}...`);
   console.log('=== Returning authorization to frontend ===\n');
