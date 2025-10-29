@@ -136,6 +136,68 @@ router.post(
 );
 
 /**
+ * Execute a meta-transaction mint (relayer endpoint).
+ *
+ * POST /api/prompts/execute-metatx
+ *
+ * RELAYER MODE:
+ * Receives user's signature and request data, then submits the
+ * meta-transaction to the ERC2771 forwarder. The relayer pays gas.
+ *
+ * @param {object} req.body - Meta-transaction execution data
+ * @param {object} req.body.requestForSigning - The signed request data
+ * @param {string} req.body.requestForSigning.from - User's address
+ * @param {string} req.body.requestForSigning.to - PromptMiner contract address
+ * @param {string} req.body.requestForSigning.value - Value to send (usually "0")
+ * @param {string} req.body.requestForSigning.gas - Gas limit
+ * @param {string} req.body.requestForSigning.nonce - Forwarder nonce
+ * @param {string} req.body.requestForSigning.deadline - Deadline timestamp
+ * @param {string} req.body.requestForSigning.data - Encoded mint call data
+ * @param {string} req.body.forwardSignature - User's EIP-712 signature
+ * @returns {object} Transaction receipt
+ *
+ * @throws {400} If request validation fails
+ * @throws {401} If authentication is required but invalid/missing
+ * @throws {429} If rate limit exceeded
+ * @throws {500} If meta-transaction execution fails
+ *
+ * @example
+ * POST /api/prompts/execute-metatx
+ * Content-Type: application/json
+ * x-api-key: your-api-key
+ *
+ * {
+ *   "requestForSigning": {
+ *     "from": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+ *     "to": "0xPromptMinerAddress",
+ *     "value": "0",
+ *     "gas": "500000",
+ *     "nonce": "0",
+ *     "deadline": "1735401600",
+ *     "data": "0x..."
+ *   },
+ *   "forwardSignature": "0xUserSignature..."
+ * }
+ *
+ * Response:
+ * {
+ *   "success": true,
+ *   "data": {
+ *     "transactionHash": "0x...",
+ *     "blockNumber": 12345,
+ *     "from": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+ *     "gasUsed": "450000"
+ *   }
+ * }
+ */
+router.post(
+  '/execute-metatx',
+  strictRateLimiter,
+  conditionalAuth(config.auth.requireAuthMint),
+  asyncHandler(promptController.executeMetaTx)
+);
+
+/**
  * Mint a new prompt with company-sponsored transaction.
  *
  * POST /api/prompts/mint-sponsored

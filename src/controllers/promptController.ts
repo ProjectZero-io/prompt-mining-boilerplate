@@ -148,6 +148,152 @@ export async function getSignableMintData(req: Request, res: Response): Promise<
   res.status(200).json(response);
 }
 
+/**
+ * Executes a meta-transaction mint (relayer mode).
+ *
+ * RELAYER MODE:
+ * Receives the user's signature and request data, then submits the
+ * meta-transaction to the ERC2771 forwarder on behalf of the user.
+ * The relayer (company) pays the gas fees.
+ *
+ * POST /api/prompts/execute-metatx
+ *
+ * @param req - Express request
+ * @param res - Express response
+ */
+export async function executeMetaTx(req: Request, res: Response): Promise<void> {
+  const { requestForSigning, forwardSignature } = req.body;
+
+  // Validate requestForSigning
+  if (!requestForSigning || typeof requestForSigning !== 'object') {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_REQUEST',
+        message: 'requestForSigning is required and must be an object',
+      },
+    });
+    return;
+  }
+
+  // Validate required fields in requestForSigning
+  const { from, to, value, gas, nonce, deadline, data } = requestForSigning;
+
+  if (!from || !isValidAddress(from)) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_FROM',
+        message: 'from must be a valid Ethereum address',
+      },
+    });
+    return;
+  }
+
+  if (!to || !isValidAddress(to)) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_TO',
+        message: 'to must be a valid Ethereum address',
+      },
+    });
+    return;
+  }
+
+  if (value === undefined || value === null) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_VALUE',
+        message: 'value is required',
+      },
+    });
+    return;
+  }
+
+  if (!gas) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_GAS',
+        message: 'gas is required',
+      },
+    });
+    return;
+  }
+
+  if (nonce === undefined || nonce === null) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_NONCE',
+        message: 'nonce is required',
+      },
+    });
+    return;
+  }
+
+  if (!deadline) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_DEADLINE',
+        message: 'deadline is required',
+      },
+    });
+    return;
+  }
+
+  if (!data || typeof data !== 'string' || !data.startsWith('0x')) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_DATA',
+        message: 'data must be a hex string starting with 0x',
+      },
+    });
+    return;
+  }
+
+  // Validate forwardSignature
+  if (!forwardSignature || typeof forwardSignature !== 'string' || !forwardSignature.startsWith('0x')) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_SIGNATURE',
+        message: 'forwardSignature must be a hex string starting with 0x',
+      },
+    });
+    return;
+  }
+
+  // Convert to BigInt
+  const request = {
+    from,
+    to,
+    value: BigInt(value),
+    gas: BigInt(gas),
+    nonce: BigInt(nonce),
+    deadline: BigInt(deadline),
+    data,
+  };
+
+  // Call service layer
+  const result = await promptMiningService.executeMetaTxMint(
+    request,
+    forwardSignature
+  );
+
+  // Return success response
+  const response: ApiResponse = {
+    success: true,
+    data: result,
+  };
+
+  res.status(201).json(response);
+}
+
 
 /**
  * Mints a new prompt and rewards the author (company-sponsored mode).

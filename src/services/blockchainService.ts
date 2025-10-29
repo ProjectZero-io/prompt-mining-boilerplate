@@ -4,6 +4,7 @@ import {
   PromptDO,
   ActivityPoints,
   getTypedDataForMetaTxMint as sdkGetTypedDataForMetaTxMint,
+  buildRequest as sdkBuildRequest,
 } from '@projectzero-io/prompt-mining-sdk';
 import type { PromptDOType, PromptMinerWithActivityPointsActionUpgradeableType, ActivityPointsType } from '@projectzero-io/prompt-mining-sdk';
 import { config } from '../config';
@@ -349,4 +350,99 @@ export async function getTypedDataForMetaTxMint(
     encodedPoints,
     actionSignature
   );
+}
+
+/**
+ * Executes a meta-transaction mint through the ERC2771 forwarder.
+ *
+ * This function acts as a relayer, building the forward request and
+ * submitting it to the ERC2771Forwarder contract which will verify
+ * the user's signature and execute the mint operation.
+ *
+ * @param requestForSigning - The request data that was signed by the user
+ * @param forwardSignature - The user's EIP-712 signature
+ * @returns Transaction receipt from the forwarder execution
+ *
+ * @throws {Error} If meta-transaction execution fails
+ *
+ * @example
+ * const receipt = await executeMetaTxMint(
+ *   {
+ *     from: "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+ *     to: "0xPromptMinerAddress",
+ *     value: 0n,
+ *     gas: 500000n,
+ *     nonce: 0n,
+ *     deadline: 1735401600n,
+ *     data: "0x..."
+ *   },
+ *   "0xUserSignature..."
+ * );
+ */
+export async function executeMetaTxMint(
+  requestForSigning: {
+    from: string;
+    to: string;
+    value: bigint;
+    gas: bigint;
+    nonce: bigint;
+    deadline: bigint;
+    data: string;
+  },
+  forwardSignature: string
+): Promise<ethers.TransactionReceipt> {
+  const { wallet: w } = initializeBlockchain();
+
+  console.log(`Building meta-transaction request...`);
+  console.log(`- User (from): ${requestForSigning.from}`);
+  console.log(`- Target (to): ${requestForSigning.to}`);
+  console.log(`- Gas limit: ${requestForSigning.gas.toString()}`);
+  console.log(`- Deadline: ${requestForSigning.deadline.toString()}`);
+
+  // Use SDK to build the complete forward request
+  const { request, erc2771Forwarder } = await sdkBuildRequest(
+    requestForSigning,
+    forwardSignature,
+    w
+  );
+
+  console.log(`Forward request built successfully`);
+  console.log(`- Forwarder address: ${await erc2771Forwarder.getAddress()}`);
+
+  // Connect the forwarder to our wallet (relayer)
+  const forwarderWithSigner = erc2771Forwarder.connect(w);
+
+  try {
+    console.log(`Executing meta-transaction through forwarder...`);
+    
+    // Execute the forward request
+    // The forwarder will verify the signature and call the PromptMiner contract
+    const tx = await forwarderWithSigner.execute(request, {
+      gasLimit: request.gas + 50000n, // Add buffer for forwarder overhead
+    });
+
+    console.log(`Meta-transaction submitted: ${tx.hash}`);
+    console.log(`Waiting for confirmation...`);
+
+    // Wait for transaction confirmation
+    const receipt = await tx.wait();
+
+    console.log(`✅ Meta-transaction executed! Block: ${receipt!.blockNumber}`);
+    console.log(`   Gas used: ${receipt!.gasUsed.toString()}`);
+
+    return receipt!;
+  } catch (error: any) {
+    console.error(`Failed to execute meta-transaction:`, error.message);
+    
+    // Provide helpful error messages
+    if (error.message.includes('ERC2771ForwarderExpiredRequest')) {
+      throw new Error('Meta-transaction expired. The deadline has passed.');
+    } else if (error.message.includes('ERC2771ForwarderInvalidSigner')) {
+      throw new Error('Invalid signature. The signature does not match the request.');
+    } else if (error.message.includes('ERC2771UntrustfulTarget')) {
+      throw new Error('Target contract does not trust this forwarder.');
+    }
+    
+    throw new Error(`Meta-transaction execution failed: ${error.message}`);
+  }
 }

@@ -360,6 +360,76 @@ export async function getSignableMintData(
 }
 
 /**
+ * Executes a meta-transaction mint through the ERC2771 forwarder.
+ *
+ * RELAYER MODE:
+ * This function acts as a relayer, receiving the user's signature and
+ * submitting the meta-transaction to the ERC2771 forwarder on their behalf.
+ *
+ * Flow:
+ * 1. Receive user's signature and request data
+ * 2. Build the complete forward request using SDK
+ * 3. Submit to ERC2771 forwarder (relayer pays gas)
+ * 4. Forwarder verifies signature and executes mint
+ * 5. User receives Activity Points without paying gas
+ *
+ * @param requestForSigning - The request data that was signed by the user
+ * @param forwardSignature - The user's EIP-712 signature
+ * @returns Transaction receipt
+ *
+ * @throws {Error} If meta-transaction execution fails
+ *
+ * @example
+ * const receipt = await executeMetaTxMint(
+ *   {
+ *     from: "0x...",
+ *     to: "0x...",
+ *     value: 0n,
+ *     gas: 500000n,
+ *     nonce: 0n,
+ *     deadline: 1735401600n,
+ *     data: "0x..."
+ *   },
+ *   "0xUserSignature..."
+ * );
+ */
+export async function executeMetaTxMint(
+  requestForSigning: {
+    from: string;
+    to: string;
+    value: bigint;
+    gas: bigint;
+    nonce: bigint;
+    deadline: bigint;
+    data: string;
+  },
+  forwardSignature: string
+): Promise<{
+  transactionHash: string;
+  blockNumber: number;
+  from: string;
+  gasUsed: string;
+}> {
+  console.log('=== Meta-Transaction Execution Flow ===');
+  console.log(`Relayer executing meta-transaction for user: ${requestForSigning.from}`);
+
+  const receipt = await blockchainService.executeMetaTxMint(
+    requestForSigning,
+    forwardSignature
+  );
+
+  console.log(`   ✅ Meta-transaction executed! Tx: ${receipt.hash}`);
+  console.log('=== Meta-Transaction Complete ===\n');
+
+  return {
+    transactionHash: receipt.hash,
+    blockNumber: receipt.blockNumber,
+    from: requestForSigning.from,
+    gasUsed: receipt.gasUsed.toString(),
+  };
+}
+
+/**
  * Initializes the blockchain connection.
  *
  * This should be called at application startup to ensure
