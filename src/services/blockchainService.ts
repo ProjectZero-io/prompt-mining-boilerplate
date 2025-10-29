@@ -2,7 +2,8 @@ import { ethers } from 'ethers';
 import {
   PromptMinerWithActivityPointsActionUpgradeable,
   PromptDO,
-  ActivityPoints
+  ActivityPoints,
+  getTypedDataForMetaTxMint as sdkGetTypedDataForMetaTxMint,
 } from '@projectzero-io/prompt-mining-sdk';
 import type { PromptDOType, PromptMinerWithActivityPointsActionUpgradeableType, ActivityPointsType } from '@projectzero-io/prompt-mining-sdk';
 import { config } from '../config';
@@ -283,4 +284,69 @@ export async function getWalletBalance(): Promise<{
     wei: balance.toString(),
     ether: ethers.formatEther(balance),
   };
+}
+
+/**
+ * Gets typed data for meta-transaction mint using SDK.
+ *
+ * This function wraps the SDK's getTypedDataForMetaTxMint to prepare
+ * EIP-712 typed data for gasless meta-transactions through ERC2771 forwarder.
+ *
+ * @param from - The address that will be the original sender (author)
+ * @param gas - Gas limit for the meta-transaction
+ * @param deadline - Timestamp deadline for the meta-transaction
+ * @param promptHash - The keccak256 hash of the prompt
+ * @param encodedPoints - The ABI-encoded activity points
+ * @param actionSignature - The PZERO authorization signature
+ * @returns Typed data containing domain, types, and request for signing
+ *
+ * @example
+ * const typedData = await getTypedDataForMetaTxMint(
+ *   "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+ *   500000n,
+ *   BigInt(Math.floor(Date.now() / 1000) + 3600),
+ *   promptHash,
+ *   encodedPoints,
+ *   pzeroSignature
+ * );
+ */
+export async function getTypedDataForMetaTxMint(
+  from: string,
+  gas: bigint,
+  deadline: bigint,
+  promptHash: string,
+  encodedPoints: string,
+  actionSignature: string
+): Promise<{
+  domain: {
+    name: string;
+    version: string;
+    chainId: bigint;
+    verifyingContract: string;
+  };
+  types: any;
+  requestForSigning: {
+    from: string;
+    to: string;
+    value: bigint;
+    gas: bigint;
+    nonce: bigint;
+    deadline: bigint;
+    data: string;
+  };
+}> {
+  const contract = getPromptMinerContract();
+  const { wallet: w } = initializeBlockchain();
+
+  // Use the SDK function to get typed data
+  return await sdkGetTypedDataForMetaTxMint(
+    contract,
+    w,
+    from,
+    gas,
+    deadline,
+    promptHash,
+    encodedPoints,
+    actionSignature
+  );
 }

@@ -1,12 +1,13 @@
 import * as pzeroAuthService from './pzeroAuthService';
 import * as blockchainService from './blockchainService';
-import { hashPrompt } from '../utils/crypto';
+import { hashPrompt, encodeActivityPoints } from '../utils/crypto';
 import {
   MintPromptResponse,
   PromptStatusResponse,
   ActivityPointsBalanceResponse,
 } from '../types';
 import { config } from '../config';
+import { ERC2771_FORWARD_REQUEST_TYPES } from '@projectzero-io/prompt-mining-sdk';
 
 /**
  * High-level orchestration service for prompt mining operations.
@@ -243,6 +244,119 @@ export async function getQuotaStatus(): Promise<{
   resetAt: number;
 }> {
   return await pzeroAuthService.getQuotaStatus();
+}
+
+/**
+ * Gets signable meta-transaction data for user-signed minting with ERC2771 forwarder.
+ *
+ * META-TRANSACTION MODE (EIP-2771):
+ * This function prepares everything needed for the user to sign an EIP-712 typed data message
+ * that will be used to execute a gasless meta-transaction through the ERC2771 forwarder.
+ *
+ * Flow:
+ * 1. Hash prompt locally (privacy preserved)
+ * 2. Request PZERO authorization with hash only
+ * 3. Prepare meta-transaction typed data using SDK
+ * 4. Return domain, types, and request for frontend to sign
+ *
+ * @param prompt - User's prompt text (PRIVACY: never sent to PZERO)
+ * @param author - Ethereum address of the prompt author (also the meta-tx signer)
+ * @param activityPoints - Amount of activity points to reward
+ * @param gas - Gas limit for the meta-transaction (default: 500000)
+ * @param deadline - Timestamp deadline for the meta-transaction (default: 1 hour from now)
+ * @returns Typed data for EIP-712 signing and additional metadata
+ *
+ * @throws {PZeroError} If PZERO authorization fails
+ *
+ * @example
+ * const signableData = await getSignableMintData(
+ *   "What is AI?",
+ *   "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+ *   "10",
+ *   500000n,
+ *   Math.floor(Date.now() / 1000) + 3600
+ * );
+ * // Frontend uses signableData.domain, signableData.types, and signableData.requestForSigning
+ * // to create an EIP-712 signature with the user's wallet
+ */
+export async function getSignableMintData(
+  prompt: string,
+  author: string,
+  activityPoints: string | number,
+  gas: bigint = 500000n,
+  deadline?: bigint
+): Promise<{
+  promptHash: string;
+  domain: {
+    name: string;
+    version: string;
+    chainId: bigint;
+    verifyingContract: string;
+  };
+  types: typeof ERC2771_FORWARD_REQUEST_TYPES;
+  requestForSigning: {
+    from: string;
+    to: string;
+    value: bigint;
+    gas: bigint;
+    nonce: bigint;
+    deadline: bigint;
+    data: string;
+  };
+  authorization: {
+    signature: string;
+    nonce: string;
+    expiresAt: number;
+  };
+}> {
+  console.log('=== Meta-Transaction Signable Data Flow ===');
+
+  // Set default deadline to 1 hour from now if not provided
+  const metaTxDeadline = deadline ?? BigInt(Math.floor(Date.now() / 1000) + 3600);
+
+  // Step 1: Hash prompt locally
+  const promptHash = hashPrompt(prompt);
+  console.log(`1. Hashed prompt locally: ${promptHash.slice(0, 10)}...`);
+
+  // Step 2: Encode activity points
+  const encodedPoints = encodeActivityPoints(activityPoints);
+  console.log(`2. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
+
+  // Step 3: Request PZERO authorization (hash only!)
+  console.log(`3. Requesting PZERO authorization (hash only)...`);
+  const authorization = await pzeroAuthService.requestMintAuthorization(
+    promptHash,
+    author,
+    String(activityPoints),
+    config.contracts.promptMiner
+  );
+  console.log(`   ✅ Authorization received: ${authorization.signature.slice(0, 10)}...`);
+
+  // Step 4: Get typed data for meta-transaction using SDK
+  console.log(`4. Preparing meta-transaction typed data...`);
+  const typedData = await blockchainService.getTypedDataForMetaTxMint(
+    author,
+    gas,
+    metaTxDeadline,
+    promptHash,
+    encodedPoints,
+    authorization.signature
+  );
+  console.log(`   ✅ Typed data prepared for signing`);
+
+  console.log('=== Returning signable data to frontend ===\n');
+
+  return {
+    promptHash,
+    domain: typedData.domain,
+    types: typedData.types,
+    requestForSigning: typedData.requestForSigning,
+    authorization: {
+      signature: authorization.signature,
+      nonce: authorization.nonce,
+      expiresAt: authorization.expiresAt,
+    },
+  };
 }
 
 /**

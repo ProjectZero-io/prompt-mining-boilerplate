@@ -62,6 +62,80 @@ router.post(
 );
 
 /**
+ * Get signable meta-transaction data for EIP-2771 gasless minting.
+ *
+ * POST /api/prompts/signable-mint-data
+ *
+ * META-TRANSACTION MODE (EIP-2771):
+ * Returns typed data for EIP-712 signing for gasless meta-transactions.
+ * User signs the typed data with their wallet, and a relayer submits it.
+ *
+ * @param {object} req.body - Meta-transaction request data
+ * @param {string} req.body.prompt - The prompt text
+ * @param {string} req.body.author - Ethereum address of the author
+ * @param {string} req.body.activityPoints - Activity points amount
+ * @param {string} [req.body.gas] - Optional gas limit (default: 500000)
+ * @param {string} [req.body.deadline] - Optional deadline timestamp (default: 1 hour from now)
+ * @returns {object} Typed data for EIP-712 signing
+ *
+ * @throws {400} If request validation fails
+ * @throws {401} If authentication is required but invalid/missing
+ * @throws {402} If PZERO quota exceeded
+ * @throws {429} If rate limit exceeded
+ * @throws {500} If PZERO authorization fails
+ *
+ * @example
+ * POST /api/prompts/signable-mint-data
+ * Content-Type: application/json
+ * x-api-key: your-api-key
+ *
+ * {
+ *   "prompt": "What is artificial intelligence?",
+ *   "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+ *   "activityPoints": "10",
+ *   "gas": "500000",
+ *   "deadline": "1735401600"
+ * }
+ *
+ * Response:
+ * {
+ *   "success": true,
+ *   "data": {
+ *     "promptHash": "0x...",
+ *     "domain": {
+ *       "name": "ERC2771Forwarder",
+ *       "version": "1",
+ *       "chainId": "1",
+ *       "verifyingContract": "0x..."
+ *     },
+ *     "types": {
+ *       "ForwardRequest": [...]
+ *     },
+ *     "requestForSigning": {
+ *       "from": "0x...",
+ *       "to": "0x...",
+ *       "value": 0,
+ *       "gas": "500000",
+ *       "nonce": "0",
+ *       "deadline": "1735401600",
+ *       "data": "0x..."
+ *     },
+ *     "authorization": {
+ *       "signature": "0x...",
+ *       "nonce": "...",
+ *       "expiresAt": 1234567890
+ *     }
+ *   }
+ * }
+ */
+router.post(
+  '/signable-mint-data',
+  strictRateLimiter,
+  conditionalAuth(config.auth.requireAuthMint),
+  asyncHandler(promptController.getSignableMintData)
+);
+
+/**
  * Mint a new prompt with company-sponsored transaction.
  *
  * POST /api/prompts/mint-sponsored

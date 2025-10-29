@@ -76,6 +76,80 @@ export async function authorizePromptMint(req: Request, res: Response): Promise<
 }
 
 /**
+ * Gets signable meta-transaction data for EIP-2771 gasless minting.
+ *
+ * META-TRANSACTION MODE (EIP-2771):
+ * Returns typed data for EIP-712 signing that will be used for gasless meta-transactions.
+ * User signs the typed data with their wallet, and a relayer submits it to the forwarder.
+ *
+ * POST /api/prompts/signable-mint-data
+ *
+ * @param req - Express request
+ * @param res - Express response
+ */
+export async function getSignableMintData(req: Request, res: Response): Promise<void> {
+  const { prompt, author, activityPoints, gas, deadline } = req.body;
+
+  // Validate required fields
+  if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_PROMPT',
+        message: 'Prompt is required and must be a non-empty string',
+      },
+    });
+    return;
+  }
+
+  if (!author || !isValidAddress(author)) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_AUTHOR',
+        message: 'Author must be a valid Ethereum address',
+      },
+    });
+    return;
+  }
+
+  if (!activityPoints || isNaN(parseFloat(activityPoints))) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_ACTIVITY_POINTS',
+        message: 'Activity points must be a valid number',
+      },
+    });
+    return;
+  }
+
+  // Optional: validate gas if provided
+  const gasLimit = gas ? BigInt(gas) : undefined;
+
+  // Optional: validate deadline if provided
+  const metaTxDeadline = deadline ? BigInt(deadline) : undefined;
+
+  // Call service layer to get signable data
+  const result = await promptMiningService.getSignableMintData(
+    prompt.trim(),
+    author,
+    activityPoints,
+    gasLimit,
+    metaTxDeadline
+  );
+
+  // Return signable data response
+  const response: ApiResponse = {
+    success: true,
+    data: result,
+  };
+
+  res.status(200).json(response);
+}
+
+
+/**
  * Mints a new prompt and rewards the author (company-sponsored mode).
  *
  * COMPANY-SPONSORED MODE (OPTIONAL):
