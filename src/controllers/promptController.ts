@@ -139,10 +139,36 @@ export async function getSignableMintData(req: Request, res: Response): Promise<
     metaTxDeadline
   );
 
+  // Convert BigInt values to strings for JSON serialization
+  const serializedResult = {
+    promptHash: result.promptHash,
+    domain: {
+      name: result.domain.name,
+      version: result.domain.version,
+      chainId: result.domain.chainId.toString(),
+      verifyingContract: result.domain.verifyingContract,
+    },
+    types: result.types,
+    requestForSigning: {
+      from: result.requestForSigning.from,
+      to: result.requestForSigning.to,
+      value: result.requestForSigning.value.toString(),
+      gas: result.requestForSigning.gas.toString(),
+      nonce: result.requestForSigning.nonce.toString(),
+      deadline: result.requestForSigning.deadline.toString(),
+      data: result.requestForSigning.data,
+    },
+    authorization: {
+      signature: result.authorization.signature,
+      nonce: result.authorization.nonce,
+      expiresAt: result.authorization.expiresAt,
+    },
+  };
+
   // Return signable data response
   const response: ApiResponse = {
     success: true,
-    data: result,
+    data: serializedResult,
   };
 
   res.status(200).json(response);
