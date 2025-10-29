@@ -152,12 +152,12 @@ export async function mintPromptToBlockchain(
 
   try {
     // Call mint function on PromptMiner contract
-    // This uses the SDK's mint method which handles signature verification
+    // This uses the contract's mint method which handles signature verification
     const tx = await contract.mint(
-      promptHash,        // Full prompt goes to blockchain
-      "",                // Empty metadata for now
-      encodedPoints,
-      authorization.signature,
+      promptHash,        // Prompt hash (bytes32)
+      "",                // Content URI / metadata (empty for now)
+      encodedPoints,     // Encoded activity points amount
+      authorization.signature,  // PZERO authorization signature
       {
         // Gas estimation and limits
         gasLimit: 500000, // Adjust based on contract complexity
