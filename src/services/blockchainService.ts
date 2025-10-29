@@ -340,6 +340,7 @@ export async function getTypedDataForMetaTxMint(
   const { wallet: w } = initializeBlockchain();
 
   // Use the SDK function to get typed data
+  // contentURI is empty string for now (will be used for IPFS/Arweave URIs in the future)
   return await sdkGetTypedDataForMetaTxMint(
     contract,
     w,
@@ -347,6 +348,7 @@ export async function getTypedDataForMetaTxMint(
     gas,
     deadline,
     promptHash,
+    "", // contentURI - empty for now
     encodedPoints,
     actionSignature
   );
