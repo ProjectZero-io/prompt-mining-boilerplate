@@ -2,7 +2,6 @@ import * as pzeroAuthService from './pzeroAuthService';
 import * as blockchainService from './blockchainService';
 import { hashPrompt, encodeActivityPoints } from '../utils/crypto';
 import {
-  MintPromptResponse,
   PromptStatusResponse,
   ActivityPointsBalanceResponse,
 } from '../types';
@@ -22,77 +21,6 @@ import { ERC2771_FORWARD_REQUEST_TYPES } from '@projectzero-io/prompt-mining-sdk
  * - Only keccak256 hashes are shared for authorization
  * - Full prompts go directly to blockchain (decentralized, public ledger)
  */
-
-/**
- * Mints a prompt with privacy-preserving PZERO authorization.
- *
- * This function orchestrates the complete minting flow:
- * 1. Hash prompt locally (keeps full text private from PZERO)
- * 2. Request PZERO authorization with hash only
- * 3. Mint to blockchain with full prompt + authorization signature
- *
- * @param prompt - User's prompt text (PRIVACY: never sent to PZERO)
- * @param author - Ethereum address of the prompt author
- * @param activityPoints - Amount of activity points to reward
- * @returns Mint result with transaction details
- *
- * @throws {PZeroError} If PZERO authorization fails
- * @throws {Error} If blockchain transaction fails
- *
- * @example
- * const result = await mintPrompt(
- *   "What is the meaning of life?",
- *   "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
- *   "10"
- * );
- * console.log('Minted!', result.transactionHash);
- */
-export async function mintPrompt(
-  prompt: string,
-  author: string,
-  activityPoints: string
-): Promise<MintPromptResponse> {
-  console.log('=== Privacy-Preserving Mint Flow ===');
-
-  // Step 1: Hash prompt locally
-  // PRIVACY: This ensures the full prompt never leaves this server
-  const promptHash = hashPrompt(prompt);
-  console.log(`1. Hashed prompt locally: ${promptHash.slice(0, 10)}...`);
-
-  // Step 2: Request PZERO authorization
-  // PRIVACY: Only the HASH is sent to PZERO, never the full prompt
-  console.log(`2. Requesting PZERO authorization (hash only)...`);
-  const authorization = await pzeroAuthService.requestMintAuthorization(
-    promptHash,
-    author,
-    activityPoints,
-    config.contracts.promptMiner
-  );
-  console.log(`   ✅ Authorization received: ${authorization.signature.slice(0, 10)}...`);
-
-  // Step 3: Mint to blockchain
-  // PRIVACY: Full prompt sent directly to blockchain (not through PZERO)
-  console.log(`3. Minting to blockchain (full prompt + authorization)...`);
-  const receipt = await blockchainService.mintPromptToBlockchain(
-    prompt,            // Full prompt goes here (to blockchain only!)
-    author,
-    activityPoints,
-    authorization
-  );
-  console.log(`   ✅ Minted! Tx: ${receipt.hash}`);
-
-  console.log('=== Mint Complete ===\n');
-
-  return {
-    transactionHash: receipt.hash,
-    promptHash,
-    blockNumber: receipt.blockNumber,
-    pzeroAuthorization: {
-      nonce: authorization.nonce,
-      expiresAt: authorization.expiresAt,
-    },
-  };
-}
 
 /**
  * Gets PZERO authorization for user-signed minting.

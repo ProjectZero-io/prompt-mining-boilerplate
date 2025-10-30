@@ -198,42 +198,6 @@ router.post(
 );
 
 /**
- * Mint a new prompt with company-sponsored transaction.
- *
- * POST /api/prompts/mint-sponsored
- *
- * COMPANY-SPONSORED MODE (OPTIONAL):
- * Company's wallet signs and submits the transaction.
- * User receives rewards without paying gas fees.
- *
- * @param {MintPromptRequest} req.body - Mint request data
- * @returns {MintPromptResponse} Transaction details
- *
- * @throws {400} If request validation fails
- * @throws {401} If authentication is required but invalid/missing
- * @throws {402} If insufficient funds for transaction
- * @throws {429} If rate limit exceeded
- * @throws {500} If blockchain transaction fails
- *
- * @example
- * POST /api/prompts/mint-sponsored
- * Content-Type: application/json
- * x-api-key: your-api-key
- *
- * {
- *   "prompt": "What is artificial intelligence?",
- *   "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
- *   "activityPoints": "10"
- * }
- */
-router.post(
-  '/mint-sponsored',
-  strictRateLimiter,
-  conditionalAuth(config.auth.requireAuthMint),
-  asyncHandler(promptController.mintPrompt)
-);
-
-/**
  * Check if a prompt is minted.
  *
  * GET /api/prompts/:hash

@@ -8,8 +8,6 @@ import {
 } from '@projectzero-io/prompt-mining-sdk';
 import type { PromptDOType, PromptMinerWithActivityPointsActionUpgradeableType, ActivityPointsType } from '@projectzero-io/prompt-mining-sdk';
 import { config } from '../config';
-import { PZeroAuthorization } from '../types';
-import { hashPrompt, encodeActivityPoints } from '../utils/crypto';
 
 /**
  * Blockchain provider and wallet instances.
@@ -101,100 +99,6 @@ function getActivityPointsContract(): ActivityPointsType {
 
   const { provider: p } = initializeBlockchain();
   return activityPointsContract.contract.connect(p);
-}
-
-/**
- * Mints a prompt directly to the blockchain.
- *
- * CRITICAL PRIVACY IMPLEMENTATION:
- * This function receives the FULL PROMPT and sends it directly to the blockchain.
- * The prompt is NEVER sent to PZERO or any other intermediary service.
- *
- * @param prompt - Full prompt text (PRIVACY: sent only to blockchain)
- * @param author - Author's Ethereum address
- * @param activityPoints - Amount to reward (in ether or wei)
- * @param authorization - PZERO authorization signature
- * @returns Transaction receipt
- *
- * @throws {Error} If blockchain transaction fails
- *
- * @security
- * - Full prompt sent ONLY to blockchain (decentralized, public)
- * - PZERO authorization signature included for verification
- * - Smart contract verifies PZERO signature on-chain
- *
- * @example
- * const receipt = await mintPromptToBlockchain(
- *   "What is artificial intelligence?",
- *   "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
- *   "10",
- *   pzeroAuthorization
- * );
- */
-export async function mintPromptToBlockchain(
-  prompt: string,
-  author: string,
-  activityPoints: string,
-  authorization: PZeroAuthorization
-): Promise<ethers.TransactionReceipt> {
-  const contract = getPromptMinerContract();
-  const { wallet: w } = initializeBlockchain();
-
-  // Encode activity points
-  const encodedPoints = encodeActivityPoints(activityPoints);
-
-  // Hash prompt for internal verification
-  const promptHash = hashPrompt(prompt);
-
-  console.log(`Minting prompt to blockchain:`);
-  console.log(`- Prompt hash: ${promptHash}`);
-  console.log(`- Author: ${author}`);
-  console.log(`- Activity points: ${activityPoints}`);
-  console.log(`- PZERO authorization: ${authorization.signature.slice(0, 10)}...`);
-
-  try {
-    // Call mint function on PromptMiner contract
-    // This uses the contract's mint method which handles signature verification
-    const tx = await contract.mint(
-      promptHash,        // Prompt hash (bytes32)
-      "",                // Content URI / metadata (empty for now)
-      encodedPoints,     // Encoded activity points amount
-      authorization.signature,  // PZERO authorization signature
-      {
-        // Gas estimation and limits
-        gasLimit: 500000, // Adjust based on contract complexity
-      }
-    );
-
-    console.log(`Transaction submitted: ${tx.hash}`);
-    console.log(`Waiting for confirmation...`);
-
-    // Wait for transaction confirmation
-    const receipt = await tx.wait();
-
-    console.log(`✅ Prompt minted! Block: ${receipt!.blockNumber}`);
-
-    return receipt!;
-  } catch (error: any) {
-    console.error(`Blockchain mint failed:`, error.message);
-
-    // Enhanced error handling
-    if (error.code === 'INSUFFICIENT_FUNDS') {
-      throw new Error(
-        `Insufficient funds for gas. Wallet ${w.address} needs more ETH.`
-      );
-    } else if (error.message?.includes('AUTHORIZATION_EXPIRED')) {
-      throw new Error(
-        'PZERO authorization expired. Please request a new authorization.'
-      );
-    } else if (error.message?.includes('INVALID_SIGNATURE')) {
-      throw new Error(
-        'Invalid PZERO signature. Authorization may be corrupted or tampered with.'
-      );
-    }
-
-    throw new Error(`Blockchain transaction failed: ${error.message}`);
-  }
 }
 
 /**
