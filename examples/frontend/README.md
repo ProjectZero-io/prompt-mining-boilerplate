@@ -29,13 +29,13 @@ This directory contains **complete, standalone examples** demonstrating how to i
 
 ---
 
-### 2. `message-signing-auth.html` - Message Signing for Authentication (OPTIONAL)
+### 2. `metatx-gasless-minting.html` - Gasless Meta-Transaction Mode (EIP-2771)
 
 **What it does:**
 - User connects Metamask wallet
-- User signs a **message** (not a transaction) to prove wallet ownership
+- User signs an **EIP-712 typed message** (not a transaction)
 - **No gas fees for user** (message signing is free)
-- Backend verifies signature and submits transaction (company-sponsored mode)
+- Backend (relayer) submits meta-transaction through ERC2771 forwarder
 - **Company pays gas fees**
 - User receives Activity Points without blockchain interaction
 
@@ -49,9 +49,10 @@ This directory contains **complete, standalone examples** demonstrating how to i
 **User Experience:**
 - ✅ No gas fees for users
 - ✅ Seamless UX (no transaction signing)
-- ✅ Easy onboarding for non-Web3 users
+- ✅ Cryptographically secure (EIP-712 signatures)
+- ✅ User maintains proof of authorship
 - ❌ Company pays all gas fees
-- ❌ Less decentralized (company submits transactions)
+- ❌ Requires relayer infrastructure
 
 ---
 
@@ -60,12 +61,12 @@ This directory contains **complete, standalone examples** demonstrating how to i
 | Requirement | Recommended Example |
 |-------------|---------------------|
 | Users should pay their own gas | `user-signed-transaction.html` |
-| Company will subsidize gas fees | `message-signing-auth.html` |
+| Company will subsidize gas fees | `metatx-gasless-minting.html` |
 | True decentralized Web3 experience | `user-signed-transaction.html` |
-| Onboarding non-crypto users | `message-signing-auth.html` |
+| Onboarding non-crypto users | `metatx-gasless-minting.html` |
 | Users expect to sign blockchain transactions | `user-signed-transaction.html` |
-| Seamless UX without Metamask transaction popups | `message-signing-auth.html` |
-| High-volume service with optimized gas | `message-signing-auth.html` |
+| Seamless UX without Metamask transaction popups | `metatx-gasless-minting.html` |
+| High-volume service with optimized gas | `metatx-gasless-minting.html` |
 
 ---
 
@@ -108,10 +109,10 @@ This directory contains **complete, standalone examples** demonstrating how to i
      - Currency Symbol: tNXRA
      - Block Explorer: https://explorer.testnet.nexera.network
 
-### For Message Signing Example
+### For Meta-Transaction Example
 
 5. **Backend Wallet Funded**
-   - Company's backend wallet needs tNXRA (testnet) or NXRA (mainnet) for gas
+   - Relayer's backend wallet needs tNXRA (testnet) or NXRA (mainnet) for gas
    - Configure `PRIVATE_KEY` in backend `.env`
    - Monitor wallet balance regularly
 
@@ -134,14 +135,13 @@ const CONFIG = {
 };
 ```
 
-**`message-signing-auth.html`:**
+**`metatx-gasless-minting.html`:**
 ```javascript
 const CONFIG = {
   BACKEND_API_URL: 'http://localhost:3000',           // Your backend URL
   API_KEY: '',                                        // Optional
   CHAIN_ID: 72080,                                    // Nexera testnet
-  BLOCK_EXPLORER_URL: 'https://explorer.testnet.nexera.network',
-  SERVICE_NAME: 'Prompt Mining Service'               // Your service name
+  BLOCK_EXPLORER_URL: 'https://explorer.testnet.nexera.network'
 };
 ```
 
@@ -164,8 +164,8 @@ ACTIVITY_POINTS_ADDRESS=0x...
 PROMPT_DO_ADDRESS=0x...
 DATA_INDEX_ADDRESS=0x...
 
-# For Message Signing Example (Company-Sponsored)
-PRIVATE_KEY=0x...  # Company wallet private key
+# For Meta-Transaction Example (Gasless Minting)
+PRIVATE_KEY=0x...  # Relayer wallet private key
 ```
 
 ### Step 3: Start Backend Server
@@ -190,9 +190,9 @@ Backend should be running on `http://localhost:3000`
    ```
 
 2. Open in browser:
-   - **macOS:** `open user-signed-transaction.html`
-   - **Linux:** `xdg-open user-signed-transaction.html`
-   - **Windows:** `start user-signed-transaction.html`
+   - **macOS:** `open user-signed-transaction.html` or `open metatx-gasless-minting.html`
+   - **Linux:** `xdg-open user-signed-transaction.html` or `xdg-open metatx-gasless-minting.html`
+   - **Windows:** `start user-signed-transaction.html` or `start metatx-gasless-minting.html`
    - Or drag the file into your browser
 
 3. Metamask should prompt you to connect
@@ -211,7 +211,7 @@ npx http-server -p 8080
 
 # Then open in browser
 # http://localhost:8080/user-signed-transaction.html
-# http://localhost:8080/message-signing-auth.html
+# http://localhost:8080/metatx-gasless-minting.html
 ```
 
 ### Option 3: Integrate Into Your Application
@@ -300,36 +300,6 @@ async function mintPrompt(prompt, signer, address) {
    - Prompt hash shown
    - Activity Points credited to wallet
 
-### Message Signing Auth Example
-
-1. **Connect Wallet**
-   - Click "Connect Metamask"
-   - Metamask popup asks to connect
-   - Wallet address displays
-
-2. **Authenticate**
-   - Click "Authenticate Wallet (Sign Message)"
-   - Metamask shows message to sign
-   - **No gas fee** - this is free
-   - User signs message
-
-3. **Submit Prompt**
-   - Authentication success shown
-   - Enter prompt text
-   - Enter reward amount
-   - Click "Submit Prompt (Company Pays Gas)"
-
-4. **Backend Mints**
-   - Backend verifies signature
-   - Backend submits transaction (company pays gas)
-   - User waits for confirmation
-
-5. **Success**
-   - Green success message
-   - Transaction hash (submitted by company)
-   - Activity Points credited to user's wallet
-   - **User paid nothing**
-
 ---
 
 ## 🔧 Troubleshooting
@@ -411,19 +381,6 @@ async function mintPrompt(prompt, signer, address) {
 
 ---
 
-### Signature Verification Failed (Message Signing Example)
-
-**Error:** "Invalid signature"
-
-**Solutions:**
-- User's signature doesn't match their address
-- Backend verification logic may need adjustment
-- Check backend has correct implementation of `ethers.verifyMessage()`
-- Ensure message format matches between frontend and backend
-- Try re-authenticating (sign a new message)
-
----
-
 ### Contract Address Not Set
 
 **Error:** "Please update PROMPT_MINER_ADDRESS"
@@ -450,21 +407,12 @@ async function mintPrompt(prompt, signer, address) {
    - Check for SQL injection, XSS, etc.
    - Implement rate limiting (already included in boilerplate)
 
-3. **Signature Verification (Message Signing Mode)**
-   ```typescript
-   // Backend: Verify user's signature
-   const recoveredAddress = ethers.verifyMessage(message, signature);
-   if (recoveredAddress.toLowerCase() !== author.toLowerCase()) {
-     throw new Error('Invalid signature');
-   }
-   ```
-
-4. **HTTPS Only**
+3. **HTTPS Only**
    - Always use HTTPS in production
    - Metamask requires HTTPS for Web3 features
    - Use valid SSL certificates
 
-5. **CORS Configuration**
+4. **CORS Configuration**
    - Configure backend CORS to only allow your frontend domain
    - Don't use `*` wildcard in production
 
@@ -483,6 +431,7 @@ async function mintPrompt(prompt, signer, address) {
 - [ ] Add fraud prevention mechanisms
 - [ ] Load test backend with expected traffic
 - [ ] Create user documentation
+- [ ] Monitor relayer wallet balance (for meta-transaction mode)
 
 ### Customization Ideas
 

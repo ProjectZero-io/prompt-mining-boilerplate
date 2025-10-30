@@ -259,114 +259,206 @@ console.log('Minted! Transaction:', receipt.hash);
 - Decentralized applications
 - Services where users expect Web3 interactions
 
-## SECONDARY: Company-Sponsored Transaction Mode (Optional)
+## SECONDARY: Meta-Transaction Mode (EIP-2771 Gasless)
 
-In this mode, your company's backend submits and pays for transactions on behalf of users. Users don't need Metamask or gas tokens.
+In this mode, users sign EIP-712 typed data (free, no gas), and your backend acts as a **relayer** to submit the transaction on their behalf through an **ERC2771Forwarder** contract. Users don't pay gas but maintain cryptographic proof of authorship.
 
 ### Flow
 
 ```
 ┌─────────┐
-│  User   │  1. Submits prompt via API
-└────┬────┘     (no wallet required)
+│  User   │  1. Submits prompt via frontend
+└────┬────┘     "What is machine learning?"
      │
      ▼
 ┌─────────────────────┐
 │  Your Backend API   │  2. Hashes prompt locally
 │                     │     hash = keccak256(prompt)
 │  POST /api/prompts/ │
-│     mint-sponsored  │  3. Requests PZERO authorization
+│  signable-mint-data │  3. Requests PZERO authorization
 │                     │     → PZERO API
 │                     │     Sends: {hash, author, reward}
 │                     │     Gets: {signature, nonce, expiry}
 │                     │
-│  Company Wallet     │  4. COMPANY signs transaction
-│  (Private Key)      │     • Your backend's wallet
-│                     │     • Your company pays gas
+│                     │  4. Prepares EIP-712 typed data
+│                     │     • Uses SDK getTypedDataForMetaTxMint
+│                     │     • Includes forwarder nonce
+│                     │     • Sets deadline for signature
 │                     │
-│                     │  5. Submits to blockchain
-└────┬────────────────┘
+│                     │  5. Returns typed data to frontend
+│                     │     {domain, types, requestForSigning}
+└─────────────────────┘
      │
-     │ 6. Transaction submitted
      ▼
 ┌─────────────────────┐
-│  Blockchain         │  7. Verifies PZERO signature
-│  PromptMiner.mint() │  8. Mints prompt
-│                     │  9. Transfers rewards to user
+│  Frontend + Metamask│  6. User signs EIP-712 typed data
+│                     │     • NO GAS FEE for signing
+│  ethers.js          │     • Metamask shows readable message
+│  • Connect wallet   │     • User approves signature
+│  • Sign typed data  │
+│                     │  7. Sends signature back to backend
+│                     │     POST /api/prompts/execute-metatx
+└────┬────────────────┘
+     │
+     ▼
+┌─────────────────────┐
+│  Your Backend API   │  8. Acts as RELAYER
+│                     │     • Builds forward request
+│  POST /api/prompts/ │     • Backend wallet pays gas
+│    execute-metatx   │     • Submits to ERC2771Forwarder
+└────┬────────────────┘
+     │
+     │ 9. Transaction submitted by relayer
+     ▼
+┌─────────────────────┐
+│  Blockchain         │  10. ERC2771Forwarder verifies:
+│  ERC2771Forwarder   │      • User's EIP-712 signature valid
+│                     │      • Deadline not expired
+│                     │      • Nonce matches
+│                     │
+│                     │  11. Forwarder calls PromptMiner
+│  PromptMiner.mint() │      • Sets msg.sender to USER (not relayer)
+│                     │      • Verifies PZERO signature
+│                     │      • Mints prompt
+│                     │      • Transfers rewards to USER
 └─────────────────────┘
 ```
 
-### Implementation
+### Implementation Steps
 
-**Backend Only:**
+**Backend - Step 1: Prepare Signable Data**
 
 ```typescript
-// Your API endpoint: POST /api/prompts/mint-sponsored
-async function mintSponsoredPrompt(prompt, userAddress, activityPoints) {
-  // Step 1: Hash prompt
-  const promptHash = hashPrompt(prompt);
+// POST /api/prompts/signable-mint-data
 
-  // Step 2: Get PZERO authorization
-  const authorization = await pzeroAuthService.requestMintAuthorization({
-    promptHash,
-    author: userAddress,
-    activityPoints
-  });
+// Step 1: Hash prompt locally
+const promptHash = hashPrompt(prompt);
 
-  // Step 3: Company's wallet signs and submits
-  const tx = await blockchainService.mintPromptToBlockchain(
-    prompt,
-    userAddress,
-    activityPoints,
-    authorization
-  );
+// Step 2: Encode activity points
+const encodedPoints = encodeActivityPoints(activityPoints);
 
-  return {
-    transactionHash: tx.hash,
-    promptHash,
-    blockNumber: tx.blockNumber
-  };
-}
+// Step 3: Request PZERO authorization (hash only!)
+const authorization = await pzeroAuthService.requestMintAuthorization(
+  promptHash,
+  author,
+  activityPoints,
+  config.contracts.promptMiner
+);
+
+// Step 4: Get typed data using SDK
+const typedData = await blockchainService.getTypedDataForMetaTxMint(
+  author,           // User's address (signer)
+  500000n,          // Gas limit
+  deadline,         // Signature deadline
+  promptHash,       // Prompt hash
+  encodedPoints,    // Encoded reward
+  authorization.signature  // PZERO auth
+);
+
+// Step 5: Return to frontend for signing
+return {
+  promptHash,
+  domain: typedData.domain,
+  types: typedData.types,
+  requestForSigning: typedData.requestForSigning,
+  authorization
+};
 ```
 
-**Frontend (Simple):**
+**Frontend - Step 2: User Signs Typed Data**
 
 ```javascript
-// No Metamask required! Just call your API
-const response = await fetch('/api/prompts/mint-sponsored', {
+// Step 1: Get signable data from backend
+const response = await fetch('/api/prompts/signable-mint-data', {
   method: 'POST',
   headers: {'Content-Type': 'application/json'},
   body: JSON.stringify({
-    prompt: "What is AI?",
-    author: "0xUserAddress...",  // Could be from your auth system
+    prompt: "What is machine learning?",
+    author: userAddress,
     activityPoints: "10"
   })
 });
 
-const {transactionHash, promptHash} = await response.json();
-console.log('Minted! TX:', transactionHash);
+const {domain, types, requestForSigning} = await response.json();
+
+// Step 2: User signs EIP-712 typed data with Metamask
+const signer = await provider.getSigner();
+const signature = await signer.signTypedData(
+  domain,
+  types,
+  requestForSigning
+);
+// NO GAS FEE! This is just a signature
+
+// Step 3: Send signature back to backend for execution
+await fetch('/api/prompts/execute-metatx', {
+  method: 'POST',
+  headers: {'Content-Type': 'application/json'},
+  body: JSON.stringify({
+    requestForSigning,
+    forwardSignature: signature
+  })
+});
+
+console.log('Minted! User paid no gas fees!');
 ```
+
+**Backend - Step 3: Execute as Relayer**
+
+```typescript
+// POST /api/prompts/execute-metatx
+
+// Step 1: Build forward request using SDK
+const {request, erc2771Forwarder} = await sdkBuildRequest(
+  requestForSigning,
+  forwardSignature,
+  relayerWallet
+);
+
+// Step 2: Connect forwarder to relayer wallet
+const forwarderWithSigner = erc2771Forwarder.connect(relayerWallet);
+
+// Step 3: Submit to forwarder (relayer pays gas)
+const tx = await forwarderWithSigner.execute(request, {
+  gasLimit: request.gas + 50000n  // Add buffer for forwarder overhead
+});
+
+// Step 4: Wait for confirmation
+const receipt = await tx.wait();
+
+return {
+  transactionHash: receipt.hash,
+  blockNumber: receipt.blockNumber,
+  from: requestForSigning.from  // Original user, not relayer!
+};
+```
+
+**See `examples/frontend/metatx-gasless-minting.html` for a complete working example.**
 
 ### Pros & Cons
 
 **Pros:**
-- ✅ No wallet required for users
-- ✅ Seamless UX (no Metamask popup)
-- ✅ Company controls gas optimization
-- ✅ Easier onboarding for non-Web3 users
+- ✅ No gas fees for users (seamless UX)
+- ✅ Cryptographically secure (EIP-712 signatures)
+- ✅ User maintains proof of authorship
+- ✅ Smart contract correctly attributes to user (via ERC2771)
+- ✅ No wallet needed for auth (just for signing)
+- ✅ Easy onboarding for non-Web3 users
 
 **Cons:**
-- ❌ Company pays all gas fees
-- ❌ Requires secure wallet management
-- ❌ Centralized transaction submission
-- ❌ Company must monitor wallet balance
+- ❌ Company/relayer pays all gas fees
+- ❌ Requires backend wallet management
+- ❌ Requires monitoring relayer balance
+- ❌ More complex flow (2 backend endpoints)
+- ❌ Still requires Metamask for signing
 
 ### Use Cases
 
 - Enterprise deployments
 - Onboarding new users to Web3
-- High-volume services where gas optimization matters
+- High-volume services where you want to subsidize gas
 - Services targeting non-crypto users
+- Applications prioritizing UX over decentralization
 
 ## Authentication Modes
 
@@ -377,12 +469,12 @@ console.log('Minted! TX:', transactionHash);
 - User proves wallet ownership
 - Example: Sign message "Authenticate for [YourService]"
 
-**Company-Sponsored Mode:**
-- You implement your own authentication (API keys, OAuth, JWT, etc.)
-- User doesn't need crypto wallet for auth
-- You map user identity to reward recipient address
+**Meta-Transaction Mode:**
+- User signs EIP-712 typed data for gasless transactions
+- Relayer (your backend) submits on behalf of user
+- User doesn't pay gas but maintains cryptographic proof
 
-**See `examples/frontend/message-signing-auth.html` for Metamask authentication example.**
+**See `examples/frontend/user-signed-transaction.html` and `examples/frontend/metatx-gasless-minting.html` for complete examples.**
 
 ### B2B Authentication (Your Service to PZERO)
 
@@ -400,11 +492,12 @@ console.log('Minted! TX:', transactionHash);
 - **Calculate reward amounts** (your logic)
 - Hash prompts locally (keccak256)
 - Request PZERO authorization (hash-only)
-- Return authorization to frontend (user-signed) OR submit transaction (sponsored)
+- Return authorization to frontend (user-signed) OR act as relayer (meta-transactions)
 
 **API Endpoints:**
 - `POST /api/prompts/authorize` - Get authorization for user to sign
-- `POST /api/prompts/mint-sponsored` - Company submits transaction
+- `POST /api/prompts/signable-mint-data` - Get EIP-712 typed data for meta-transactions
+- `POST /api/prompts/execute-metatx` - Execute meta-transaction (relayer mode)
 - `GET /api/prompts/:hash` - Check if prompt minted
 - `GET /api/activity-points/:address` - Get user's balance
 - `GET /api/quota` - Check PZERO usage quota
@@ -412,7 +505,7 @@ console.log('Minted! TX:', transactionHash);
 **Your Control:**
 - Reward algorithm (quality scoring, user tier, etc.)
 - B2C authentication mechanism
-- Choose user-signed or sponsored mode
+- Choose user-signed or meta-transaction mode
 - Monitor costs and usage
 
 ### 2. PZERO Gateway (B2B Service)
@@ -462,9 +555,10 @@ console.log('Minted! TX:', transactionHash);
 - Pays gas fees
 - Receives Activity Points directly
 
-**Company-Sponsored Mode:**
-- Optional (not required)
-- Can still receive Activity Points at any address
+**Meta-Transaction Mode:**
+- User signs EIP-712 typed data (no gas)
+- Relayer submits transaction
+- User still receives Activity Points
 
 ## Privacy-Preserving Data Flow
 
@@ -485,9 +579,9 @@ Step 3: PZERO Authorization
 └─▶ Receive: {signature, nonce, expiresAt}
 
 Step 4: Transaction Submission
-├─▶ USER signs (Mode 1): Full prompt + PZERO signature
-├─▶ OR COMPANY signs (Mode 2): Full prompt + PZERO signature
-└─▶ Submit to blockchain
+├─▶ USER signs (Mode 1): Full prompt + PZERO signature → Blockchain
+├─▶ OR USER signs typed data (Mode 2): Relayer submits → Forwarder → Blockchain
+└─▶ Smart contract receives full prompt on-chain
 
 Step 5: Blockchain Verification
 ├─▶ Verify PZERO signature is valid ✅
@@ -554,9 +648,9 @@ function calculateReward(prompt: string, userAddress: string): string {
 ⚠️ **Reward calculation logic** - Determine fair reward amounts
 ⚠️ **B2C authentication** - User authentication for your service
 ⚠️ **Fraud prevention** - Detect/prevent reward gaming
-⚠️ **Gas fee management** - Monitor wallet balance (sponsored mode)
+⚠️ **Gas fee management** - Monitor relayer wallet balance (meta-transaction mode)
 ⚠️ **Monitoring & alerting** - Track usage, errors, costs
-⚠️ **Private key security** - Use HSM/KMS for production (sponsored mode)
+⚠️ **Private key security** - Use HSM/KMS for production (relayer wallet)
 
 ### Smart Contract Security
 
@@ -590,7 +684,7 @@ function calculateReward(prompt: string, userAddress: string): string {
 
 3. **Setup Infrastructure:**
    - RPC endpoint (Alchemy, Infura, or your own node)
-   - Wallet with gas funds (if using sponsored mode)
+   - Relayer wallet with gas funds (if using meta-transaction mode)
    - Backend server environment (Node.js + Express)
 
 ### Setup Steps
@@ -619,8 +713,8 @@ PROMPT_MINER_ADDRESS=0x...
 ACTIVITY_POINTS_ADDRESS=0x...
 PROMPT_DO_ADDRESS=0x...
 
-# Optional: For company-sponsored mode
-PRIVATE_KEY=0x...  # Your wallet private key
+# Optional: For meta-transaction relayer mode
+PRIVATE_KEY=0x...  # Relayer wallet private key
 ```
 
 **3. Implement Reward Logic:**
@@ -640,10 +734,11 @@ function calculateReward(prompt: string, author: string): string {
 - Call `POST /api/prompts/authorize` from frontend
 - User signs transaction with Metamask
 
-**Option B: Company-Sponsored**
-- Add your authentication logic
-- Call `POST /api/prompts/mint-sponsored` from frontend
-- Your backend handles all blockchain interactions
+**Option B: Meta-Transaction (Gasless)**
+- Use EIP-2771 for gasless transactions
+- See `examples/frontend/metatx-gasless-minting.html`
+- Call `POST /api/prompts/signable-mint-data` for typed data
+- User signs with Metamask, relayer executes via `POST /api/prompts/execute-metatx`
 
 **5. Test on Testnet:**
 ```bash
@@ -675,18 +770,6 @@ curl -X POST http://localhost:3000/api/prompts/authorize \
   }'
 ```
 
-**Test Sponsored Mint:**
-```bash
-curl -X POST http://localhost:3000/api/prompts/mint-sponsored \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: your-api-key" \
-  -d '{
-    "prompt": "What is blockchain?",
-    "author": "0xUserAddress",
-    "activityPoints": "10"
-  }'
-```
-
 **Check Prompt Status:**
 ```bash
 curl http://localhost:3000/api/prompts/0xPromptHash
@@ -700,7 +783,7 @@ curl http://localhost:3000/api/prompts/0xPromptHash
 - Prompts minted per day/hour
 - PZERO quota remaining
 - Successful vs failed mints
-- Average gas costs (sponsored mode)
+- Average gas costs (user-signed and meta-transactions)
 
 **Performance Metrics:**
 - API response times
@@ -709,7 +792,7 @@ curl http://localhost:3000/api/prompts/0xPromptHash
 - Error rates by type
 
 **Cost Metrics:**
-- Gas fees spent (sponsored mode)
+- Gas fees spent (meta-transaction relayer mode)
 - PZERO tier usage
 - RPC call costs
 - Infrastructure costs
@@ -734,9 +817,9 @@ curl http://localhost:3000/api/prompts/0xPromptHash
 - **Cause:** Monthly quota exceeded
 - **Solution:** Upgrade PZERO tier or wait for monthly reset
 
-**2. "Insufficient gas funds"**
-- **Cause:** Wallet balance too low (sponsored mode)
-- **Solution:** Fund wallet with gas tokens
+**2. "Insufficient funds"**
+- **Cause:** Wallet balance too low (meta-transaction relayer mode)
+- **Solution:** Fund relayer wallet with gas tokens
 
 **3. "Authorization expired"**
 - **Cause:** User took too long to sign transaction
@@ -754,8 +837,8 @@ curl http://localhost:3000/api/prompts/0xPromptHash
 
 1. ✅ **Try the Examples:**
    - Review `examples/basic-usage.ts` for backend integration
-   - Open `examples/frontend/user-signed-transaction.html` for frontend
-   - Test `examples/frontend/message-signing-auth.html` for authentication
+   - Open `examples/frontend/user-signed-transaction.html` for user-signed mode
+   - Test `examples/frontend/metatx-gasless-minting.html` for meta-transactions
 
 2. ✅ **Customize Reward Logic:**
    - Implement your reward calculation algorithm
@@ -763,7 +846,7 @@ curl http://localhost:3000/api/prompts/0xPromptHash
 
 3. ✅ **Add Your Authentication:**
    - Integrate with your existing auth system
-   - Implement user verification for sponsored mode
+   - Implement user verification for API access
 
 4. ✅ **Deploy to Testnet:**
    - Test thoroughly on Nexera testnet
