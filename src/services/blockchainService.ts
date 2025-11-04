@@ -354,3 +354,97 @@ export async function executeMetaTxMint(
     throw new Error(`Meta-transaction execution failed: ${error.message}`);
   }
 }
+
+/**
+ * Executes a direct mint transaction (backend-signed mode).
+ *
+ * This function allows the BACKEND to mint a prompt on behalf of any user.
+ * The backend's wallet signs and submits the transaction, paying for gas.
+ * The specified author receives the Activity Points rewards, even if they didn't sign anything.
+ * 
+ * This is useful for server-side minting where you want to reward users without requiring
+ * them to have a wallet or pay gas fees, and without using meta-transactions.
+ * 
+ * Contract signature: mint(address author, bytes32 promptHash, string contentURI, bytes actionData, bytes actionSignature)
+ *
+ * @param author - The address that will receive the Activity Points (can be any address)
+ * @param promptHash - The keccak256 hash of the prompt
+ * @param contentURI - Content URI for metadata (empty string for now)
+ * @param encodedPoints - The ABI-encoded activity points (actionData)
+ * @param actionSignature - The PZERO authorization signature
+ * @returns Transaction receipt
+ *
+ * @throws {Error} If mint transaction fails
+ *
+ * @example
+ * // Backend mints and rewards user at 0x742d35... (user doesn't need to sign anything)
+ * const receipt = await executeMint(
+ *   "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",  // User receives rewards
+ *   promptHash,
+ *   "",
+ *   encodedPoints,
+ *   pzeroSignature  // Backend got this from PZERO
+ * );
+ */
+export async function executeMint(
+  author: string,
+  promptHash: string,
+  contentURI: string,
+  encodedPoints: string,
+  actionSignature: string
+): Promise<ethers.TransactionReceipt> {
+  const contract = getPromptMinerContract();
+  const { wallet: w } = initializeBlockchain();
+
+  console.log(`Executing direct mint transaction...`);
+  console.log(`- Author: ${author}`);
+  console.log(`- Prompt hash: ${promptHash}`);
+  console.log(`- Content URI: ${contentURI || '(empty)'}`);
+  console.log(`- PZERO authorization: ${actionSignature.slice(0, 10)}...`);
+
+  try {
+    // Call mint function on PromptMiner contract
+    // Signature: mint(address author, bytes32 promptHash, string contentURI, bytes actionData, bytes actionSignature)
+    // Note: Using full signature to call the specific overload (with author parameter)
+    const tx = await contract['mint(address,bytes32,string,bytes,bytes)'](
+      author,           // Address of the author (receives rewards)
+      promptHash,       // Prompt hash (bytes32)
+      contentURI,       // Content URI / metadata (empty string for now)
+      encodedPoints,    // Encoded activity points amount (actionData)
+      actionSignature,  // PZERO authorization signature
+      {
+        gasLimit: 500000, // Adjust based on contract complexity
+      }
+    );
+
+    console.log(`Transaction submitted: ${tx.hash}`);
+    console.log(`Waiting for confirmation...`);
+
+    // Wait for transaction confirmation
+    const receipt = await tx.wait();
+
+    console.log(`✅ Prompt minted! Block: ${receipt!.blockNumber}`);
+    console.log(`   Gas used: ${receipt!.gasUsed.toString()}`);
+
+    return receipt!;
+  } catch (error: any) {
+    console.error(`Direct mint failed:`, error.message);
+
+    // Enhanced error handling
+    if (error.code === 'INSUFFICIENT_FUNDS') {
+      throw new Error(
+        `Insufficient funds for gas. Wallet ${w.address} needs more ETH.`
+      );
+    } else if (error.message?.includes('AUTHORIZATION_EXPIRED')) {
+      throw new Error(
+        'PZERO authorization expired. Please request a new authorization.'
+      );
+    } else if (error.message?.includes('INVALID_SIGNATURE')) {
+      throw new Error(
+        'Invalid PZERO signature. Authorization may be corrupted or tampered with.'
+      );
+    }
+
+    throw new Error(`Mint transaction failed: ${error.message}`);
+  }
+}
