@@ -321,6 +321,71 @@ export async function executeMetaTx(req: Request, res: Response): Promise<void> 
 }
 
 /**
+ * Mints a prompt on behalf of a user (backend-signed mode).
+ *
+ * BACKEND-SIGNED MODE:
+ * Backend wallet signs and submits the transaction.
+ * Specified user receives Activity Points without needing to sign or pay gas.
+ *
+ * POST /api/prompts/mint-for-user
+ *
+ * @param req - Express request
+ * @param res - Express response
+ */
+export async function mintPromptForUser(req: Request, res: Response): Promise<void> {
+  const { prompt, author, activityPoints } = req.body;
+
+  // Validate required fields
+  if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_PROMPT',
+        message: 'Prompt is required and must be a non-empty string',
+      },
+    });
+    return;
+  }
+
+  if (!author || !isValidAddress(author)) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_AUTHOR',
+        message: 'Author must be a valid Ethereum address',
+      },
+    });
+    return;
+  }
+
+  if (!activityPoints || isNaN(parseFloat(activityPoints))) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_ACTIVITY_POINTS',
+        message: 'Activity points must be a valid number',
+      },
+    });
+    return;
+  }
+
+  // Call service layer
+  const result = await promptMiningService.mintPromptForUser(
+    prompt.trim(),
+    author,
+    activityPoints
+  );
+
+  // Return success response
+  const response: ApiResponse = {
+    success: true,
+    data: result,
+  };
+
+  res.status(201).json(response);
+}
+
+/**
  * Checks if a prompt has been minted.
  *
  * GET /api/prompts/:hash

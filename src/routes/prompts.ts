@@ -198,6 +198,61 @@ router.post(
 );
 
 /**
+ * Mint a prompt on behalf of a user (backend-signed mode).
+ *
+ * POST /api/prompts/mint-for-user
+ *
+ * BACKEND-SIGNED MODE:
+ * Backend wallet signs and submits the transaction.
+ * Specified user receives Activity Points without needing to sign or pay gas.
+ * This is the simplest approach - backend has full control.
+ *
+ * @param {object} req.body - Mint request data
+ * @param {string} req.body.prompt - The prompt text
+ * @param {string} req.body.author - Ethereum address that will receive Activity Points
+ * @param {string} req.body.activityPoints - Activity points amount
+ * @returns {object} Transaction receipt and mint details
+ *
+ * @throws {400} If request validation fails
+ * @throws {401} If authentication is required but invalid/missing
+ * @throws {402} If PZERO quota exceeded
+ * @throws {429} If rate limit exceeded
+ * @throws {500} If blockchain transaction fails
+ *
+ * @example
+ * POST /api/prompts/mint-for-user
+ * Content-Type: application/json
+ * x-api-key: your-api-key
+ *
+ * {
+ *   "prompt": "What is artificial intelligence?",
+ *   "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+ *   "activityPoints": "10"
+ * }
+ *
+ * Response:
+ * {
+ *   "success": true,
+ *   "data": {
+ *     "transactionHash": "0x...",
+ *     "promptHash": "0x...",
+ *     "blockNumber": 12345,
+ *     "gasUsed": "450000",
+ *     "pzeroAuthorization": {
+ *       "nonce": "...",
+ *       "expiresAt": 1234567890
+ *     }
+ *   }
+ * }
+ */
+router.post(
+  '/mint-for-user',
+  strictRateLimiter,
+  conditionalAuth(config.auth.requireAuthMint),
+  asyncHandler(promptController.mintPromptForUser)
+);
+
+/**
  * Check if a prompt is minted.
  *
  * GET /api/prompts/:hash
