@@ -358,6 +358,97 @@ export async function executeMetaTxMint(
 }
 
 /**
+ * Mints a prompt on behalf of a user (backend-signed mode).
+ *
+ * BACKEND-SIGNED MODE:
+ * This function allows the backend to mint prompts for any user without requiring
+ * them to sign anything or pay gas. The backend wallet signs and submits the transaction.
+ *
+ * Flow:
+ * 1. Hash prompt locally (privacy preserved)
+ * 2. Request PZERO authorization with hash only
+ * 3. Backend signs and submits transaction directly
+ * 4. Specified author receives Activity Points
+ *
+ * @param prompt - User's prompt text (PRIVACY: never sent to PZERO)
+ * @param author - Ethereum address that will receive the Activity Points
+ * @param activityPoints - Amount of activity points to reward
+ * @returns Transaction receipt with mint details
+ *
+ * @throws {PZeroError} If PZERO authorization fails
+ * @throws {Error} If blockchain transaction fails
+ *
+ * @example
+ * // Backend mints and rewards user (user doesn't need wallet or signature)
+ * const result = await mintPromptForUser(
+ *   "What is AI?",
+ *   "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",  // This user receives rewards
+ *   "10"
+ * );
+ * console.log('Minted!', result.transactionHash);
+ */
+export async function mintPromptForUser(
+  prompt: string,
+  author: string,
+  activityPoints: string
+): Promise<{
+  transactionHash: string;
+  promptHash: string;
+  blockNumber: number;
+  gasUsed: string;
+  pzeroAuthorization: {
+    nonce: string;
+    expiresAt: number;
+  };
+}> {
+  console.log('=== Backend-Signed Mint Flow ===');
+  console.log(`Minting prompt for author: ${author}`);
+
+  // Step 1: Hash prompt locally
+  const promptHash = hashPrompt(prompt);
+  console.log(`1. Hashed prompt locally: ${promptHash.slice(0, 10)}...`);
+
+  // Step 2: Encode activity points
+  const encodedPoints = encodeActivityPoints(activityPoints);
+  console.log(`2. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
+
+  // Step 3: Request PZERO authorization (hash only!)
+  console.log(`3. Requesting PZERO authorization (hash only)...`);
+  const authorization = await pzeroAuthService.requestMintAuthorization(
+    promptHash,
+    author,
+    activityPoints,
+    config.contracts.promptMiner
+  );
+  console.log(`   ✅ Authorization received: ${authorization.signature.slice(0, 10)}...`);
+
+  // Step 4: Backend signs and submits transaction
+  console.log(`4. Backend signing and submitting transaction...`);
+  const receipt = await blockchainService.executeMint(
+    author,              // User who receives rewards
+    promptHash,          // Prompt hash
+    "",                  // Content URI (empty for now)
+    encodedPoints,       // Encoded activity points
+    authorization.signature  // PZERO authorization
+  );
+  console.log(`   ✅ Minted! Tx: ${receipt.hash}`);
+
+  console.log('=== Backend-Signed Mint Complete ===\n');
+
+  return {
+    transactionHash: receipt.hash,
+    promptHash,
+    blockNumber: receipt.blockNumber,
+    gasUsed: receipt.gasUsed.toString(),
+    pzeroAuthorization: {
+      nonce: authorization.nonce,
+      expiresAt: authorization.expiresAt,
+    },
+  };
+}
+
+
+/**
  * Initializes the blockchain connection.
  *
  * This should be called at application startup to ensure
