@@ -1,10 +1,8 @@
 import { ethers } from 'ethers';
 import {
-  PromptMinerWithActivityPointsActionUpgradeable,
-  PromptDO,
-  ActivityPoints,
   getTypedDataForMetaTxMint as sdkGetTypedDataForMetaTxMint,
   buildRequest as sdkBuildRequest,
+  contractFactories
 } from '@projectzero-io/prompt-mining-sdk';
 import type { PromptDOType, PromptMinerWithActivityPointsActionUpgradeableType, ActivityPointsType } from '@projectzero-io/prompt-mining-sdk';
 import { config } from '../config';
@@ -19,9 +17,9 @@ let wallet: ethers.Wallet | null = null;
 /**
  * SDK contract instances.
  */
-let promptMinerContract: PromptMinerWithActivityPointsActionUpgradeable | null = null;
-let promptDOContract: PromptDO | null = null;
-let activityPointsContract: ActivityPoints | null = null;
+let promptMinerContract: PromptMinerWithActivityPointsActionUpgradeableType | null = null;
+let promptDOContract: PromptDOType | null = null;
+let activityPointsContract: ActivityPointsType | null = null;
 
 /**
  * Initializes blockchain provider and wallet.
@@ -64,13 +62,13 @@ export function initializeBlockchain(): {
  */
 function getPromptMinerContract(): PromptMinerWithActivityPointsActionUpgradeableType {
   if (!promptMinerContract) {
-    promptMinerContract = new PromptMinerWithActivityPointsActionUpgradeable(
+    promptMinerContract = contractFactories.PromptMinerWithActivityPoints.connect(
       config.contracts.promptMiner
     );
   }
 
   const { wallet: w } = initializeBlockchain();
-  return promptMinerContract.contract.connect(w);
+  return promptMinerContract.connect(w);
 }
 
 /**
@@ -80,11 +78,13 @@ function getPromptMinerContract(): PromptMinerWithActivityPointsActionUpgradeabl
  */
 function getPromptDOContract(): PromptDOType {
   if (!promptDOContract) {
-    promptDOContract = new PromptDO(config.contracts.promptDO);
+    promptDOContract = contractFactories.PromptDO.connect(
+      config.contracts.promptDO
+    );
   }
 
-  const { provider: p } = initializeBlockchain();
-  return promptDOContract.contract.connect(p);
+  const { wallet: w } = initializeBlockchain();
+  return promptDOContract.connect(w);
 }
 
 /**
@@ -94,17 +94,19 @@ function getPromptDOContract(): PromptDOType {
  */
 function getActivityPointsContract(): ActivityPointsType {
   if (!activityPointsContract) {
-    activityPointsContract = new ActivityPoints(config.contracts.activityPoints);
+    activityPointsContract = contractFactories.ActivityPoints.connect(
+      config.contracts.activityPoints
+    );
   }
 
-  const { provider: p } = initializeBlockchain();
-  return activityPointsContract.contract.connect(p);
+  const { wallet: w } = initializeBlockchain();
+  return activityPointsContract.connect(w);
 }
 
 /**
  * Checks if a prompt has been minted.
  *
- * This is a read-only operation that queries the PromptDO contract.
+ * This is a read-only operation that queries the PromptMiner contract.
  *
  * @param promptHash - Keccak256 hash of the prompt
  * @returns True if prompt is minted
@@ -113,7 +115,7 @@ function getActivityPointsContract(): ActivityPointsType {
  * const isMinted = await checkPromptMinted(promptHash);
  */
 export async function checkPromptMinted(promptHash: string): Promise<boolean> {
-  const contract = getPromptDOContract();
+  const contract = getPromptMinerContract();
 
   try {
     const isMinted = await contract.isPromptMinted(promptHash);
