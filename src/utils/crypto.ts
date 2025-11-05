@@ -67,7 +67,7 @@ export function encodeActivityPoints(points: string | number): string {
  * @param encodedPoints - ABI-encoded activity points
  * @returns Hash to be signed for authorization
  *
- * @see @projectzero-io/prompt-mining-sdk/getPromptHash
+ * @see @project_zero/prompt-mining-sdk/getPromptHash
  *
  * @example
  * const hash = getPromptHashForSigning(

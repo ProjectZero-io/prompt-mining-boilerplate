@@ -3,8 +3,8 @@ import {
   getTypedDataForMetaTxMint as sdkGetTypedDataForMetaTxMint,
   buildRequest as sdkBuildRequest,
   contractFactories
-} from '@projectzero-io/prompt-mining-sdk';
-import type { PromptDOType, PromptMinerWithActivityPointsActionUpgradeableType, ActivityPointsType } from '@projectzero-io/prompt-mining-sdk';
+} from '@project_zero/prompt-mining-sdk';
+import type { PromptDOType, PromptMinerWithActivityPointsActionUpgradeableType, ActivityPointsType } from '@project_zero/prompt-mining-sdk';
 import { config } from '../config';
 
 /**

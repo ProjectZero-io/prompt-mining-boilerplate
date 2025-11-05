@@ -6,7 +6,7 @@ import {
   ActivityPointsBalanceResponse,
 } from '../types';
 import { config } from '../config';
-import { ERC2771_FORWARD_REQUEST_TYPES } from '@projectzero-io/prompt-mining-sdk';
+import { ERC2771_FORWARD_REQUEST_TYPES } from '@project_zero/prompt-mining-sdk';
 
 /**
  * High-level orchestration service for prompt mining operations.
