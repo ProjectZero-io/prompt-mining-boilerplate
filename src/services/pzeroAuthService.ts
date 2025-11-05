@@ -73,6 +73,7 @@ async function retryWithBackoff<T>(
  */
 function handlePZeroApiError(error: unknown): never {
   if (axios.isAxiosError(error)) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const axiosError = error as AxiosError<any>;
 
     // Timeout error

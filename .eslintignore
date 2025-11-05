@@ -1,0 +1,17 @@
+# Directories excluded from TypeScript compilation
+bad-examples/
+examples/
+scripts/
+
+# Build output
+dist/
+build/
+
+# Dependencies
+node_modules/
+
+# Coverage
+coverage/
+
+# Generated files
+*.d.ts
