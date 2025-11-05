@@ -2,6 +2,7 @@
 bad-examples/
 examples/
 scripts/
+tests/
 
 # Build output
 dist/
