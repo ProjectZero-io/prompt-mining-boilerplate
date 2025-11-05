@@ -354,20 +354,110 @@ Authentication requirements per endpoint are configurable via environment variab
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
 | `GET` | `/health` | Health check endpoint | No |
-| `POST` | `/api/prompts/mint` | Mint a new prompt and reward user | Configurable (default: Yes) |
+| `POST` | `/api/prompts/authorize` | Get PZERO authorization for user-signed mint | Configurable (default: Yes) |
+| `POST` | `/api/prompts/signable-mint-data` | Get EIP-712 typed data for meta-transaction | Configurable (default: Yes) |
+| `POST` | `/api/prompts/execute-metatx` | Execute meta-transaction (relayer mode) | Configurable (default: Yes) |
+| `POST` | `/api/prompts/mint-for-user` | Mint on behalf of user (backend-signed) | Configurable (default: Yes) |
 | `GET` | `/api/prompts/:hash` | Check if prompt is minted | Configurable (default: No) |
 
 ### Mint Prompt
 
-**Endpoint**: `POST /api/prompts/mint`
+There are **three ways** to mint prompts depending on your use case:
 
-**Authentication**: Required (configurable via `REQUIRE_AUTH_MINT`)
+---
 
-**Headers**:
+#### Option 1: User-Signed Transaction (`/api/prompts/authorize`)
+
+**Best for:** Public LLM services, decentralized applications, Web3-native platforms  
+**User pays gas** | **User signs transaction** | **Requires wallet (Metamask)**
+
+**Endpoint**: `POST /api/prompts/authorize`
+
+**Request Body**:
+```json
+{
+  "prompt": "What is artificial intelligence?",
+  "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+  "activityPoints": "10"
+}
 ```
-Content-Type: application/json
-x-api-key: your-api-key-here
+
+**Response** (user signs this with Metamask):
+```json
+{
+  "success": true,
+  "data": {
+    "to": "0x...",
+    "data": "0x...",
+    "value": "0"
+  }
+}
 ```
+
+**Example:** See [`examples/frontend/user-signed-transaction.html`](examples/frontend/user-signed-transaction.html)
+
+---
+
+#### Option 2: Meta-Transaction (`/api/prompts/signable-mint-data` + `/api/prompts/execute-metatx`)
+
+**Best for:** Enterprise deployments, onboarding non-crypto users  
+**Backend pays gas** | **User signs message (EIP-712)** | **Requires wallet (Metamask)**
+
+**Step 1 - Get Signable Data**: `POST /api/prompts/signable-mint-data`
+
+**Request**:
+```json
+{
+  "prompt": "What is artificial intelligence?",
+  "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+  "activityPoints": "10"
+}
+```
+
+**Response** (user signs with Metamask):
+```json
+{
+  "success": true,
+  "data": {
+    "domain": { ... },
+    "types": { ... },
+    "message": { ... }
+  }
+}
+```
+
+**Step 2 - Execute**: `POST /api/prompts/execute-metatx`
+
+**Request**:
+```json
+{
+  "typedData": { ... },
+  "signature": "0x..."
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "transactionHash": "0x...",
+    "promptHash": "0x...",
+    "blockNumber": 12345678
+  }
+}
+```
+
+**Example:** See [`examples/frontend/message-signing-auth.html`](examples/frontend/message-signing-auth.html)
+
+---
+
+#### Option 3: Backend-Signed Mint (`/api/prompts/mint-for-user`)
+
+**Best for:** Rewarding users without wallets, promotional campaigns, onboarding flows  
+**Backend pays gas** | **No user signature** | **No wallet required**
+
+**Endpoint**: `POST /api/prompts/mint-for-user`
 
 **Request Body**:
 ```json
@@ -390,14 +480,24 @@ x-api-key: your-api-key-here
 }
 ```
 
+**Use Cases:**
+- Reward users who don't have wallets yet
+- Promotional campaigns (mint prompts for all users)
+- Onboarding flows (give new users their first prompts)
+- Admin operations (retroactive rewards)
+
+**⚠️ Security Note:** This endpoint allows the backend to mint prompts for any address. Ensure proper access control and validation in production.
+
+---
+
 
 ## Frontend Integration
 
-This boilerplate provides **two integration modes** for frontend applications, with complete working examples using Metamask.
+This boilerplate provides **three integration modes** for frontend applications, with complete working examples using Metamask.
 
 ### 🎯 Integration Modes
 
-#### 1. User-Signed Transaction Mode (Recommended)
+#### 1. User-Signed Transaction Mode
 
 **Best for:** Public LLM services, decentralized applications, Web3-native platforms
 
@@ -407,6 +507,8 @@ Users sign blockchain transactions directly with their Metamask wallet. They pay
 ```
 User → Backend (get authorization) → User signs TX with Metamask → Blockchain → Rewards
 ```
+
+**Endpoint:** `POST /api/prompts/authorize`
 
 **Example:** [`examples/frontend/user-signed-transaction.html`](examples/frontend/user-signed-transaction.html)
 
@@ -421,7 +523,7 @@ User → Backend (get authorization) → User signs TX with Metamask → Blockch
 
 ---
 
-#### 2. Message Signing Authentication (Optional)
+#### 2. Meta-Transaction Mode (EIP-712 Message Signing)
 
 **Best for:** Enterprise deployments, onboarding non-crypto users, high-volume services
 
@@ -432,16 +534,45 @@ Users sign a message (free, no gas) to prove wallet ownership. Your backend subm
 User → Signs message (free) → Backend verifies → Backend submits TX → Rewards
 ```
 
+**Endpoints:** 
+- `POST /api/prompts/signable-mint-data` (get typed data)
+- `POST /api/prompts/execute-metatx` (execute)
+
 **Example:** [`examples/frontend/message-signing-auth.html`](examples/frontend/message-signing-auth.html)
 
 **Pros:**
 - ✅ No gas fees for users
 - ✅ Seamless UX (no transaction popups)
-- ✅ Easy onboarding
+- ✅ User proves wallet ownership
 
 **Cons:**
 - ❌ Company pays all gas fees
-- ❌ Less decentralized
+- ❌ Requires user signature (still needs wallet)
+
+---
+
+#### 3. Backend-Signed Mode (No User Interaction)
+
+**Best for:** Rewarding users without wallets, promotional campaigns, onboarding flows
+
+Backend mints prompts directly without any user signature or wallet interaction.
+
+**Flow:**
+```
+Backend → Blockchain (backend signs & pays gas) → Rewards user address
+```
+
+**Endpoint:** `POST /api/prompts/mint-for-user`
+
+**Pros:**
+- ✅ No wallet required
+- ✅ Zero user interaction
+- ✅ Perfect for onboarding and promotions
+
+**Cons:**
+- ❌ Company pays all gas fees
+- ❌ User doesn't prove ownership
+- ❌ Requires strong backend access control
 
 ---
 

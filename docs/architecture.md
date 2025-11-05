@@ -460,6 +460,165 @@ return {
 - Services targeting non-crypto users
 - Applications prioritizing UX over decentralization
 
+## THIRD: Backend-Signed Mode (No User Interaction)
+
+This mode allows your backend to mint prompts **directly** without any user signature or wallet interaction. Perfect for rewarding users who don't have wallets yet or for promotional campaigns.
+
+### Flow
+
+```
+┌─────────┐
+│  User   │  1. Uses your service (no wallet needed!)
+└────┬────┘     "What is machine learning?"
+     │
+     ▼
+┌─────────────────────┐
+│  Your Backend API   │  2. Hashes prompt locally
+│                     │     hash = keccak256(prompt)
+│  POST /api/prompts/ │
+│    mint-for-user    │  3. Requests PZERO authorization
+│                     │     → PZERO API
+│                     │     Sends: {hash, author, reward}
+│                     │     Gets: {signature, nonce, expiry}
+│                     │
+│                     │  4. Backend wallet signs transaction
+│                     │     • Backend pays gas fees
+│                     │     • NO user signature required
+│                     │
+│                     │  5. Submits transaction directly
+│                     │     mint(address, bytes32, string, bytes, bytes)
+└────┬────────────────┘
+     │
+     │ 6. Signed transaction submitted
+     ▼
+┌─────────────────────┐
+│  Blockchain         │  7. Smart contract verifies:
+│  PromptMiner.mint() │     • PZERO signature valid
+│                     │     • Nonce not used
+│                     │     • Authorization not expired
+│                     │
+│                     │  8. Mints prompt + transfers rewards to USER
+│                     │     (even though backend signed the TX)
+└─────────────────────┘
+```
+
+### Implementation Steps
+
+**Backend (Your API):**
+
+```typescript
+// POST /api/prompts/mint-for-user
+
+// Step 1: Hash prompt locally
+const promptHash = hashPrompt(prompt);
+
+// Step 2: Encode activity points
+const encodedPoints = encodeActivityPoints(activityPoints);
+
+// Step 3: Request PZERO authorization (hash only!)
+const authorization = await pzeroAuthService.requestMintAuthorization(
+  promptHash,
+  author,           // User's address (will receive rewards)
+  activityPoints,
+  config.contracts.promptMiner
+);
+
+// Step 4: Execute mint directly (backend signs)
+const tx = await blockchainService.executeMint(
+  author,                    // User who receives rewards
+  promptHash,                // Prompt hash
+  prompt,                    // Full prompt text
+  encodedPoints,             // Encoded reward
+  authorization.signature    // PZERO authorization
+);
+
+// Step 5: Wait for confirmation
+await tx.wait();
+
+// Done! User receives rewards without signing anything
+```
+
+**Key Difference from Other Modes:**
+
+The smart contract method signature is different:
+```solidity
+// User-signed & Meta-tx modes use:
+mint(bytes32 promptHash, string memory prompt, bytes memory encodedData, bytes memory signature)
+
+// Backend-signed mode uses:
+mint(address author, bytes32 promptHash, string memory prompt, bytes memory encodedData, bytes memory signature)
+```
+
+The extra `address author` parameter tells the contract who should receive the rewards, even though the backend wallet is signing the transaction.
+
+### Pros & Cons
+
+**Pros:**
+- ✅ No wallet required for users
+- ✅ Zero user interaction (seamless UX)
+- ✅ Perfect for onboarding flows
+- ✅ Ideal for promotional campaigns
+- ✅ Can reward users retroactively
+
+**Cons:**
+- ❌ Your backend pays ALL gas fees
+- ❌ User doesn't prove wallet ownership
+- ❌ Requires strong access control (API keys, authentication)
+- ❌ Higher centralization (backend has full control)
+
+### Security Considerations
+
+**⚠️ Critical Security Requirements:**
+
+1. **Strong API Authentication**: ALWAYS require API key authentication
+2. **Rate Limiting**: Prevent abuse and gas fee exhaustion
+3. **Address Validation**: Verify addresses are valid before minting
+4. **Monitoring**: Track spending to prevent runaway gas costs
+5. **Access Control**: Restrict which services/users can call this endpoint
+
+**Example `.env` configuration:**
+```env
+# Require authentication for backend-signed mints
+REQUIRE_AUTH_MINT=true
+
+# Use strong API keys
+API_KEYS=secure-key-1,secure-key-2
+
+# Rate limiting
+RATE_LIMIT_MAX_REQUESTS=100
+RATE_LIMIT_WINDOW_MS=900000  # 15 minutes
+```
+
+### Use Cases
+
+- **Onboarding flows**: Give new users their first prompts/rewards without requiring wallet setup
+- **Promotional campaigns**: Mint prompts for all users as a promotion ("Everyone gets 100 points!")
+- **Admin operations**: Retroactively reward users who participated before the system launched
+- **No-wallet users**: Reward users who haven't set up Web3 wallets yet
+- **Batch operations**: Mint prompts for multiple users in a single backend job
+
+### Cost Implications
+
+Since your backend pays ALL gas fees in this mode, monitor costs carefully:
+
+```typescript
+// Estimate gas costs before deployment
+const gasEstimate = await contract.estimateGas.mint(
+  author,
+  promptHash,
+  prompt,
+  encodedPoints,
+  signature
+);
+
+const gasPrice = await provider.getFeeData();
+const estimatedCost = gasEstimate * gasPrice.gasPrice;
+
+console.log(`Estimated cost per mint: ${ethers.formatEther(estimatedCost)} ETH`);
+```
+
+**Recommendation:** Use this mode sparingly for special cases. For regular operations, prefer user-signed or meta-transaction modes where users have some accountability.
+
 ## Authentication Modes
 
 ### B2C Authentication (User to Your Service)
@@ -467,14 +626,22 @@ return {
 **User-Signed Mode:**
 - User authenticates with Metamask wallet signature
 - User proves wallet ownership
+- User pays gas and signs transaction
 - Example: Sign message "Authenticate for [YourService]"
 
 **Meta-Transaction Mode:**
 - User signs EIP-712 typed data for gasless transactions
 - Relayer (your backend) submits on behalf of user
 - User doesn't pay gas but maintains cryptographic proof
+- User proves wallet ownership through signature
 
-**See `examples/frontend/user-signed-transaction.html` and `examples/frontend/metatx-gasless-minting.html` for complete examples.**
+**Backend-Signed Mode:**
+- NO user authentication or signature required
+- Backend mints directly on behalf of user address
+- Requires strong API-level authentication (API keys)
+- User receives rewards without any wallet interaction
+
+**See `examples/frontend/user-signed-transaction.html` and `examples/frontend/message-signing-auth.html` for complete examples.**
 
 ### B2B Authentication (Your Service to PZERO)
 
@@ -495,9 +662,10 @@ return {
 - Return authorization to frontend (user-signed) OR act as relayer (meta-transactions)
 
 **API Endpoints:**
-- `POST /api/prompts/authorize` - Get authorization for user to sign
+- `POST /api/prompts/authorize` - Get authorization for user to sign (user-signed mode)
 - `POST /api/prompts/signable-mint-data` - Get EIP-712 typed data for meta-transactions
 - `POST /api/prompts/execute-metatx` - Execute meta-transaction (relayer mode)
+- `POST /api/prompts/mint-for-user` - Mint on behalf of user (backend-signed mode)
 - `GET /api/prompts/:hash` - Check if prompt minted
 - `GET /api/activity-points/:address` - Get user's balance
 - `GET /api/quota` - Check PZERO usage quota
@@ -505,7 +673,10 @@ return {
 **Your Control:**
 - Reward algorithm (quality scoring, user tier, etc.)
 - B2C authentication mechanism
-- Choose user-signed or meta-transaction mode
+- Choose between three minting modes:
+  1. **User-signed** - User signs transaction with wallet
+  2. **Meta-transaction** - User signs EIP-712 message, backend relays
+  3. **Backend-signed** - Backend mints directly without user signature
 - Monitor costs and usage
 
 ### 2. PZERO Gateway (B2B Service)
@@ -559,6 +730,12 @@ return {
 - User signs EIP-712 typed data (no gas)
 - Relayer submits transaction
 - User still receives Activity Points
+
+**Backend-Signed Mode:**
+- No wallet interaction required
+- Backend mints on behalf of user
+- User receives Activity Points without signing
+- Ideal for onboarding users without wallets
 
 ## Privacy-Preserving Data Flow
 
@@ -728,17 +905,23 @@ function calculateReward(prompt: string, author: string): string {
 
 **4. Choose Integration Mode:**
 
-**Option A: User-Signed (Recommended)**
+**Option A: User-Signed (Recommended for Web3 Apps)**
 - Integrate frontend with Metamask
 - Use examples in `examples/frontend/user-signed-transaction.html`
 - Call `POST /api/prompts/authorize` from frontend
 - User signs transaction with Metamask
 
-**Option B: Meta-Transaction (Gasless)**
+**Option B: Meta-Transaction (Gasless for Users)**
 - Use EIP-2771 for gasless transactions
-- See `examples/frontend/metatx-gasless-minting.html`
+- See `examples/frontend/message-signing-auth.html`
 - Call `POST /api/prompts/signable-mint-data` for typed data
 - User signs with Metamask, relayer executes via `POST /api/prompts/execute-metatx`
+
+**Option C: Backend-Signed (No Wallet Required)**
+- Mint prompts directly from backend
+- No user signature needed
+- Call `POST /api/prompts/mint-for-user` from backend
+- Ideal for: onboarding flows, promotional campaigns, rewarding users without wallets
 
 **5. Test on Testnet:**
 ```bash
