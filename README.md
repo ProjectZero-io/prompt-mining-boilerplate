@@ -525,14 +525,39 @@ Your server will run at `http://localhost:3000` (or your configured `PORT`). Tes
 
 ### Docker Deployment
 
-This boilerplate includes Docker support for containerized deployments:
+This boilerplate is **100% Dockerized** and production-ready. See the complete Docker deployment guide:
+
+**📖 [Full Docker Documentation](docs/DOCKER.md)** - Comprehensive guide with private npm package setup
+
+**⚡ [Quick Start](DOCKER-QUICK-START.md)** - Get running in 30 seconds
+
+#### Quick Docker Setup
 
 ```bash
-# Build Docker image
-docker build -t prompt-mining-api .
+# 1. Set your npm token (required for private @project_zero/prompt-mining-sdk)
+export NPM_TOKEN=$(cat ~/.npmrc | grep "_authToken" | cut -d '=' -f 2)
 
-# Run container locally for testing
+# 2. Build and run with Docker Compose
+docker-compose up -d --build
+
+# 3. View logs
+docker-compose logs -f
+
+# 4. Test health endpoint
+curl http://localhost:3000/health
+```
+
+#### Manual Docker Build
+
+```bash
+# Build with private npm package support
+docker build --build-arg NPM_TOKEN=$NPM_TOKEN -t prompt-mining-api .
+
+# Run container
 docker run -p 3000:3000 --env-file .env prompt-mining-api
+```
+
+**Note**: This project uses the private npm package `@project_zero/prompt-mining-sdk`. You must provide an NPM authentication token to build the Docker image. See [docs/DOCKER.md](docs/DOCKER.md) for details.
 
 # Or use Docker Compose
 docker-compose up -d

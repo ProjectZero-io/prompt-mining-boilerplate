@@ -4,8 +4,8 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Package locks (npm ci will handle this)
-package-lock.json
+# Package locks - KEEP package-lock.json for npm ci
+# package-lock.json  # DO NOT IGNORE - needed for npm ci
 yarn.lock
 
 # Build output (will be generated in Docker)

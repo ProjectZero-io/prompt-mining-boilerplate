@@ -463,7 +463,7 @@ export async function getBalance(req: Request, res: Response): Promise<void> {
  * @param req - Express request
  * @param res - Express response
  */
-export async function getQuota(req: Request, res: Response): Promise<void> {
+export async function getQuota(_req: Request, res: Response): Promise<void> {
   // Call service layer
   const result = await promptMiningService.getQuotaStatus();
 

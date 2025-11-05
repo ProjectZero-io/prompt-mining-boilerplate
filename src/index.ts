@@ -46,7 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging in development
 if (config.env === 'development') {
-  app.use((req, res, next) => {
+  app.use((req, _res, next) => {
     console.log(`${req.method} ${req.path}`);
     next();
   });

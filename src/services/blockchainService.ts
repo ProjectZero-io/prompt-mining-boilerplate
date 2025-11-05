@@ -76,7 +76,7 @@ function getPromptMinerContract(): PromptMinerWithActivityPointsActionUpgradeabl
  *
  * @returns PromptDO contract connected to provider
  */
-function getPromptDOContract(): PromptDOType {
+export function getPromptDOContract(): PromptDOType {
   if (!promptDOContract) {
     promptDOContract = contractFactories.PromptDO.connect(
       config.contracts.promptDO

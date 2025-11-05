@@ -7,7 +7,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+# Note: For private npm packages, you need to pass NPM_TOKEN as a build arg
+# Example: docker build --build-arg NPM_TOKEN=$NPM_TOKEN -t prompt-mining-api .
+ARG NPM_TOKEN
+RUN if [ -n "$NPM_TOKEN" ]; then \
+      echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc; \
+    fi && \
+    npm ci && \
+    rm -f .npmrc
 
 # Copy source code
 COPY . .
@@ -24,7 +31,13 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install production dependencies only
-RUN npm ci --only=production
+# Note: For private npm packages, you need to pass NPM_TOKEN as a build arg
+ARG NPM_TOKEN
+RUN if [ -n "$NPM_TOKEN" ]; then \
+      echo "//registry.npmjs.org/:_authToken=${NPM_TOKEN}" > .npmrc; \
+    fi && \
+    npm ci --only=production && \
+    rm -f .npmrc
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
