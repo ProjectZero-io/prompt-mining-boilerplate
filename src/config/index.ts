@@ -96,12 +96,13 @@ const parseBoolean = (value: string | undefined, defaultValue: boolean): boolean
  */
 const parseApiKeys = (value: string | undefined): string[] => {
   if (!value) {
-    console.warn(
-      'WARNING: No API keys configured. Authentication will not work properly.'
-    );
+    console.warn('WARNING: No API keys configured. Authentication will not work properly.');
     return [];
   }
-  return value.split(',').map((key) => key.trim()).filter((key) => key.length > 0);
+  return value
+    .split(',')
+    .map((key) => key.trim())
+    .filter((key) => key.length > 0);
 };
 
 /**
@@ -168,10 +169,7 @@ export const config: Config = {
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 min default
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
-    skipAuthenticatedUsers: parseBoolean(
-      process.env.RATE_LIMIT_SKIP_AUTHENTICATED,
-      false
-    ),
+    skipAuthenticatedUsers: parseBoolean(process.env.RATE_LIMIT_SKIP_AUTHENTICATED, false),
   },
 
   logging: {

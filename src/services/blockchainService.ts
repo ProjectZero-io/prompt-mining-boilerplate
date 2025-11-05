@@ -2,9 +2,13 @@ import { ethers } from 'ethers';
 import {
   getTypedDataForMetaTxMint as sdkGetTypedDataForMetaTxMint,
   buildRequest as sdkBuildRequest,
-  contractFactories
+  contractFactories,
 } from '@project_zero/prompt-mining-sdk';
-import type { PromptDOType, PromptMinerWithActivityPointsActionUpgradeableType, ActivityPointsType } from '@project_zero/prompt-mining-sdk';
+import type {
+  PromptDOType,
+  PromptMinerWithActivityPointsActionUpgradeableType,
+  ActivityPointsType,
+} from '@project_zero/prompt-mining-sdk';
 import { config } from '../config';
 
 /**
@@ -78,9 +82,7 @@ function getPromptMinerContract(): PromptMinerWithActivityPointsActionUpgradeabl
  */
 export function getPromptDOContract(): PromptDOType {
   if (!promptDOContract) {
-    promptDOContract = contractFactories.PromptDO.connect(
-      config.contracts.promptDO
-    );
+    promptDOContract = contractFactories.PromptDO.connect(config.contracts.promptDO);
   }
 
   const { wallet: w } = initializeBlockchain();
@@ -144,10 +146,7 @@ export async function getActivityPointsBalance(address: string): Promise<{
   const contract = getActivityPointsContract();
 
   try {
-    const [balance, symbol] = await Promise.all([
-      contract.balanceOf(address),
-      contract.symbol(),
-    ]);
+    const [balance, symbol] = await Promise.all([contract.balanceOf(address), contract.symbol()]);
 
     return {
       wei: balance.toString(),
@@ -254,7 +253,7 @@ export async function getTypedDataForMetaTxMint(
     gas,
     deadline,
     promptHash,
-    "", // contentURI - empty for now
+    '', // contentURI - empty for now
     encodedPoints,
     actionSignature
   );
@@ -322,7 +321,7 @@ export async function executeMetaTxMint(
 
   try {
     console.log(`Executing meta-transaction through forwarder...`);
-    
+
     // Execute the forward request
     // The forwarder will verify the signature and call the PromptMiner contract
     const tx = await forwarderWithSigner.execute(request, {
@@ -341,7 +340,7 @@ export async function executeMetaTxMint(
     return receipt!;
   } catch (error: any) {
     console.error(`Failed to execute meta-transaction:`, error.message);
-    
+
     // Provide helpful error messages
     if (error.message.includes('ERC2771ForwarderExpiredRequest')) {
       throw new Error('Meta-transaction expired. The deadline has passed.');
@@ -350,7 +349,7 @@ export async function executeMetaTxMint(
     } else if (error.message.includes('ERC2771UntrustfulTarget')) {
       throw new Error('Target contract does not trust this forwarder.');
     }
-    
+
     throw new Error(`Meta-transaction execution failed: ${error.message}`);
   }
 }
@@ -361,10 +360,10 @@ export async function executeMetaTxMint(
  * This function allows the BACKEND to mint a prompt on behalf of any user.
  * The backend's wallet signs and submits the transaction, paying for gas.
  * The specified author receives the Activity Points rewards, even if they didn't sign anything.
- * 
+ *
  * This is useful for server-side minting where you want to reward users without requiring
  * them to have a wallet or pay gas fees, and without using meta-transactions.
- * 
+ *
  * Contract signature: mint(address author, bytes32 promptHash, string contentURI, bytes actionData, bytes actionSignature)
  *
  * @param author - The address that will receive the Activity Points (can be any address)
@@ -407,11 +406,11 @@ export async function executeMint(
     // Signature: mint(address author, bytes32 promptHash, string contentURI, bytes actionData, bytes actionSignature)
     // Note: Using full signature to call the specific overload (with author parameter)
     const tx = await contract['mint(address,bytes32,string,bytes,bytes)'](
-      author,           // Address of the author (receives rewards)
-      promptHash,       // Prompt hash (bytes32)
-      contentURI,       // Content URI / metadata (empty string for now)
-      encodedPoints,    // Encoded activity points amount (actionData)
-      actionSignature,  // PZERO authorization signature
+      author, // Address of the author (receives rewards)
+      promptHash, // Prompt hash (bytes32)
+      contentURI, // Content URI / metadata (empty string for now)
+      encodedPoints, // Encoded activity points amount (actionData)
+      actionSignature, // PZERO authorization signature
       {
         gasLimit: 500000, // Adjust based on contract complexity
       }
@@ -432,17 +431,11 @@ export async function executeMint(
 
     // Enhanced error handling
     if (error.code === 'INSUFFICIENT_FUNDS') {
-      throw new Error(
-        `Insufficient funds for gas. Wallet ${w.address} needs more ETH.`
-      );
+      throw new Error(`Insufficient funds for gas. Wallet ${w.address} needs more ETH.`);
     } else if (error.message?.includes('AUTHORIZATION_EXPIRED')) {
-      throw new Error(
-        'PZERO authorization expired. Please request a new authorization.'
-      );
+      throw new Error('PZERO authorization expired. Please request a new authorization.');
     } else if (error.message?.includes('INVALID_SIGNATURE')) {
-      throw new Error(
-        'Invalid PZERO signature. Authorization may be corrupted or tampered with.'
-      );
+      throw new Error('Invalid PZERO signature. Authorization may be corrupted or tampered with.');
     }
 
     throw new Error(`Mint transaction failed: ${error.message}`);

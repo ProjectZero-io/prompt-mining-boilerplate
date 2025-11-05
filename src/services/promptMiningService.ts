@@ -1,10 +1,7 @@
 import * as pzeroAuthService from './pzeroAuthService';
 import * as blockchainService from './blockchainService';
 import { hashPrompt, encodeActivityPoints } from '../utils/crypto';
-import {
-  PromptStatusResponse,
-  ActivityPointsBalanceResponse,
-} from '../types';
+import { PromptStatusResponse, ActivityPointsBalanceResponse } from '../types';
 import { config } from '../config';
 import { ERC2771_FORWARD_REQUEST_TYPES } from '@project_zero/prompt-mining-sdk';
 
@@ -93,7 +90,7 @@ export async function authorizePromptMint(
       expiresAt: authorization.expiresAt,
     },
     mintData: {
-      prompt,  // Full prompt returned so frontend can include in transaction
+      prompt, // Full prompt returned so frontend can include in transaction
       author,
       activityPoints,
     },
@@ -112,14 +109,10 @@ export async function authorizePromptMint(
  * const status = await getPromptStatus("0x1234...");
  * console.log('Is minted:', status.isMinted);
  */
-export async function getPromptStatus(
-  promptOrHash: string
-): Promise<PromptStatusResponse> {
+export async function getPromptStatus(promptOrHash: string): Promise<PromptStatusResponse> {
   // If input looks like a hash (0x...), use it directly
   // Otherwise, hash it first
-  const promptHash = promptOrHash.startsWith('0x')
-    ? promptOrHash
-    : hashPrompt(promptOrHash);
+  const promptHash = promptOrHash.startsWith('0x') ? promptOrHash : hashPrompt(promptOrHash);
 
   const isMinted = await blockchainService.checkPromptMinted(promptHash);
 
@@ -141,9 +134,7 @@ export async function getPromptStatus(
  * const balance = await getUserBalance("0x...");
  * console.log(`Balance: ${balance.balanceEther} ${balance.symbol}`);
  */
-export async function getUserBalance(
-  address: string
-): Promise<ActivityPointsBalanceResponse> {
+export async function getUserBalance(address: string): Promise<ActivityPointsBalanceResponse> {
   const balance = await blockchainService.getActivityPointsBalance(address);
 
   return {
@@ -341,10 +332,7 @@ export async function executeMetaTxMint(
   console.log('=== Meta-Transaction Execution Flow ===');
   console.log(`Relayer executing meta-transaction for user: ${requestForSigning.from}`);
 
-  const receipt = await blockchainService.executeMetaTxMint(
-    requestForSigning,
-    forwardSignature
-  );
+  const receipt = await blockchainService.executeMetaTxMint(requestForSigning, forwardSignature);
 
   console.log(`   ✅ Meta-transaction executed! Tx: ${receipt.hash}`);
   console.log('=== Meta-Transaction Complete ===\n');
@@ -425,11 +413,11 @@ export async function mintPromptForUser(
   // Step 4: Backend signs and submits transaction
   console.log(`4. Backend signing and submitting transaction...`);
   const receipt = await blockchainService.executeMint(
-    author,              // User who receives rewards
-    promptHash,          // Prompt hash
-    "",                  // Content URI (empty for now)
-    encodedPoints,       // Encoded activity points
-    authorization.signature  // PZERO authorization
+    author, // User who receives rewards
+    promptHash, // Prompt hash
+    '', // Content URI (empty for now)
+    encodedPoints, // Encoded activity points
+    authorization.signature // PZERO authorization
   );
   console.log(`   ✅ Minted! Tx: ${receipt.hash}`);
 
@@ -446,7 +434,6 @@ export async function mintPromptForUser(
     },
   };
 }
-
 
 /**
  * Initializes the blockchain connection.

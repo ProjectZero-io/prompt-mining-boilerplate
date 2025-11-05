@@ -21,11 +21,7 @@ import { config } from '../config';
  * // Apply globally to all routes
  * app.use('/api', authenticate);
  */
-export const authenticate = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
+export const authenticate = (req: Request, res: Response, next: NextFunction): void => {
   // Extract API key from header
   const apiKey = req.headers['x-api-key'] as string | undefined;
 
@@ -72,11 +68,7 @@ export const authenticate = (
  * // Allow both authenticated and unauthenticated access
  * router.get('/prompts/:hash', optionalAuthenticate, controller.getPrompt);
  */
-export const optionalAuthenticate = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): void => {
+export const optionalAuthenticate = (req: Request, res: Response, next: NextFunction): void => {
   const apiKey = req.headers['x-api-key'] as string | undefined;
 
   // If no API key provided, proceed without authentication

@@ -59,8 +59,7 @@ export const strictRateLimiter = rateLimit({
     success: false,
     error: {
       code: 'RATE_LIMIT_EXCEEDED',
-      message:
-        'Too many requests for this sensitive operation. Please try again later.',
+      message: 'Too many requests for this sensitive operation. Please try again later.',
     },
   },
   standardHeaders: true,

@@ -42,13 +42,14 @@ export function hashPrompt(prompt: string): string {
 export function encodeActivityPoints(points: string | number): string {
   // Convert to string for consistent handling
   const pointsStr = String(points);
-  
-  // Parse to wei if not already
-  const pointsWei = pointsStr.includes('.') || parseInt(pointsStr, 10) < 1000
-    ? ethers.parseEther(pointsStr)
-    : BigInt(pointsStr);
 
-  if(pointsWei <= 0n) return '0x';
+  // Parse to wei if not already
+  const pointsWei =
+    pointsStr.includes('.') || parseInt(pointsStr, 10) < 1000
+      ? ethers.parseEther(pointsStr)
+      : BigInt(pointsStr);
+
+  if (pointsWei <= 0n) return '0x';
 
   // ABI encode as uint256
   return ethers.AbiCoder.defaultAbiCoder().encode(['uint256'], [pointsWei]);

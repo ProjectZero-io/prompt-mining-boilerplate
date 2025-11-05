@@ -283,7 +283,11 @@ export async function executeMetaTx(req: Request, res: Response): Promise<void> 
   }
 
   // Validate forwardSignature
-  if (!forwardSignature || typeof forwardSignature !== 'string' || !forwardSignature.startsWith('0x')) {
+  if (
+    !forwardSignature ||
+    typeof forwardSignature !== 'string' ||
+    !forwardSignature.startsWith('0x')
+  ) {
     res.status(400).json({
       success: false,
       error: {
@@ -306,10 +310,7 @@ export async function executeMetaTx(req: Request, res: Response): Promise<void> 
   };
 
   // Call service layer
-  const result = await promptMiningService.executeMetaTxMint(
-    request,
-    forwardSignature
-  );
+  const result = await promptMiningService.executeMetaTxMint(request, forwardSignature);
 
   // Return success response
   const response: ApiResponse = {
@@ -370,11 +371,7 @@ export async function mintPromptForUser(req: Request, res: Response): Promise<vo
   }
 
   // Call service layer
-  const result = await promptMiningService.mintPromptForUser(
-    prompt.trim(),
-    author,
-    activityPoints
-  );
+  const result = await promptMiningService.mintPromptForUser(prompt.trim(), author, activityPoints);
 
   // Return success response
   const response: ApiResponse = {
