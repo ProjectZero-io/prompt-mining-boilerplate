@@ -5,7 +5,6 @@ import {
   contractFactories,
 } from '@project_zero/prompt-mining-sdk';
 import type {
-  PromptDOType,
   PromptMinerWithActivityPointsActionUpgradeableType,
   ActivityPointsType,
 } from '@project_zero/prompt-mining-sdk';
@@ -22,7 +21,6 @@ let wallet: ethers.Wallet | null = null;
  * SDK contract instances.
  */
 let promptMinerContract: PromptMinerWithActivityPointsActionUpgradeableType | null = null;
-let promptDOContract: PromptDOType | null = null;
 let activityPointsContract: ActivityPointsType | null = null;
 
 /**
@@ -73,20 +71,6 @@ function getPromptMinerContract(): PromptMinerWithActivityPointsActionUpgradeabl
 
   const { wallet: w } = initializeBlockchain();
   return promptMinerContract.connect(w);
-}
-
-/**
- * Gets or initializes PromptDO contract instance.
- *
- * @returns PromptDO contract connected to provider
- */
-export function getPromptDOContract(): PromptDOType {
-  if (!promptDOContract) {
-    promptDOContract = contractFactories.PromptDO.connect(config.contracts.promptDO);
-  }
-
-  const { wallet: w } = initializeBlockchain();
-  return promptDOContract.connect(w);
 }
 
 /**

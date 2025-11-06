@@ -61,11 +61,12 @@ app.use(errorHandler);
 
 // Start server
 const server = app.listen(config.server.port, () => {
+  const host = config.env === 'production' ? '0.0.0.0' : 'localhost';
   console.log('\n═══════════════════════════════════════════════════');
   console.log('🚀 Prompt Mining API Server');
   console.log('═══════════════════════════════════════════════════');
   console.log(`📍 Environment:    ${config.env}`);
-  console.log(`🌐 Server:         http://${config.server.host}:${config.server.port}`);
+  console.log(`🌐 Server:         http://${host}:${config.server.port}`);
   console.log(`⛓️  Chain ID:       ${config.blockchain.chainId}`);
   console.log(`🔑 PZERO Client:   ${config.pzero.clientId}`);
   console.log('═══════════════════════════════════════════════════');
