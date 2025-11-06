@@ -42,8 +42,6 @@ async function runTests() {
     'CHAIN_ID',
     'PROMPT_MINER_ADDRESS',
     'ACTIVITY_POINTS_ADDRESS',
-    'PROMPT_DO_ADDRESS',
-    'DATA_INDEX_ADDRESS',
     'PRIVATE_KEY',
     'PZERO_API_KEY',
     'PZERO_CLIENT_ID',
@@ -85,8 +83,6 @@ async function runTests() {
   const addresses = {
     PROMPT_MINER_ADDRESS: process.env.PROMPT_MINER_ADDRESS,
     ACTIVITY_POINTS_ADDRESS: process.env.ACTIVITY_POINTS_ADDRESS,
-    PROMPT_DO_ADDRESS: process.env.PROMPT_DO_ADDRESS,
-    DATA_INDEX_ADDRESS: process.env.DATA_INDEX_ADDRESS,
   };
 
   for (const [name, address] of Object.entries(addresses)) {
