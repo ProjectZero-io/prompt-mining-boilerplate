@@ -218,9 +218,21 @@ docker-compose up -d --build
 
 ## Production Deployment
 
+### Important: Development vs Production Configuration
+
+**⚠️ WARNING:** The current `docker-compose.yml` is configured for **LOCAL DEVELOPMENT ONLY**. It connects to a local PZERO Gateway container.
+
+**For production, you MUST:**
+
+1. **Use the real PZERO Gateway** at `https://gateway.pzero.io/v1`
+2. **Remove the development network** from docker-compose.yml
+3. **Use production environment variables**
+
 ### 1. Environment Configuration
 
-Create a production `.env` file:
+**For Production Deployment:**
+
+Create a production `.env.production` file (or use `.env.production.example` as template):
 
 ```env
 # Production Environment
@@ -231,10 +243,12 @@ PORT=3000
 RPC_URL=https://rpc.nexera.network
 CHAIN_ID=7208
 
-# PZERO Production Credentials
-PZERO_API_KEY=pzero_live_xxxxxxxxxxxxx
-PZERO_CLIENT_ID=your-company-id
-PZERO_API_URL=https://api.pzero.io/v1
+# PZERO Production - USE REAL GATEWAY
+PZERO_API_URL=https://gateway.pzero.io/v1
+PZERO_API_KEY=pzero_prod_xxxxxxxxxxxxx
+PZERO_CLIENT_ID=your-production-company-id
+PZERO_AUTH_TIMEOUT_MS=10000
+PZERO_RETRY_ATTEMPTS=5
 
 # Smart Contracts (Production)
 PROMPT_MINER_ADDRESS=0x...
@@ -248,6 +262,24 @@ PRIVATE_KEY=0xYourProductionPrivateKey
 # Security
 API_KEYS=prod-key-1,prod-key-2
 REQUIRE_AUTH=true
+REQUIRE_AUTH_MINT=true
+```
+
+### 2. Use Production Docker Compose
+
+For production, use `docker-compose.prod.yml` which removes development-specific networks:
+
+```bash
+# Production deployment
+docker-compose -f docker-compose.prod.yml up -d --build
+```
+
+Or manually edit `docker-compose.yml` to remove:
+```yaml
+# REMOVE THIS FOR PRODUCTION:
+networks:
+  - prompt-mining-api-gateway_pzero-network  # ❌ Development only!
+```
 
 # Rate Limiting
 RATE_LIMIT_WINDOW_MS=900000
