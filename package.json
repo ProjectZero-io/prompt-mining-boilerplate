@@ -30,7 +30,7 @@
   "author": "ProjectZero",
   "license": "MIT",
   "dependencies": {
-    "@project_zero/prompt-mining-sdk": "^0.0.1-dev",
+    "@project_zero/prompt-mining-sdk": "^0.0.2-dev",
     "axios": "^1.6.2",
     "ethers": "^6.9.0",
     "express": "^4.18.2",
