@@ -354,11 +354,12 @@ Authentication requirements per endpoint are configurable via environment variab
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
 | `GET` | `/health` | Health check endpoint | No |
+| `GET` | `/api/activity-points/:address` | Get activity points balance for an address | Configurable (default: No) |
+| `GET` | `/api/prompts/:hash` | Check if prompt is minted | Configurable (default: No) |
 | `POST` | `/api/prompts/authorize` | Get PZERO authorization for user-signed mint | Configurable (default: Yes) |
 | `POST` | `/api/prompts/signable-mint-data` | Get EIP-712 typed data for meta-transaction | Configurable (default: Yes) |
 | `POST` | `/api/prompts/execute-metatx` | Execute meta-transaction (relayer mode) | Configurable (default: Yes) |
 | `POST` | `/api/prompts/mint-for-user` | Mint on behalf of user (backend-signed) | Configurable (default: Yes) |
-| `GET` | `/api/prompts/:hash` | Check if prompt is minted | Configurable (default: No) |
 
 ### Mint Prompt
 
