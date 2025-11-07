@@ -11,7 +11,6 @@ interface Config {
   env: string;
   server: {
     port: number;
-    host: string;
   };
   blockchain: {
     rpcUrl: string;
@@ -21,8 +20,6 @@ interface Config {
   contracts: {
     promptMiner: string;
     activityPoints: string;
-    promptDO: string;
-    dataIndex: string;
   };
   pzero: {
     apiKey: string;
@@ -41,9 +38,6 @@ interface Config {
     windowMs: number;
     maxRequests: number;
     skipAuthenticatedUsers: boolean;
-  };
-  logging: {
-    level: string;
   };
 }
 
@@ -96,12 +90,13 @@ const parseBoolean = (value: string | undefined, defaultValue: boolean): boolean
  */
 const parseApiKeys = (value: string | undefined): string[] => {
   if (!value) {
-    console.warn(
-      'WARNING: No API keys configured. Authentication will not work properly.'
-    );
+    console.warn('WARNING: No API keys configured. Authentication will not work properly.');
     return [];
   }
-  return value.split(',').map((key) => key.trim()).filter((key) => key.length > 0);
+  return value
+    .split(',')
+    .map((key) => key.trim())
+    .filter((key) => key.length > 0);
 };
 
 /**
@@ -122,7 +117,6 @@ export const config: Config = {
 
   server: {
     port: parseInt(process.env.PORT || '3000', 10),
-    host: process.env.HOST || 'localhost',
   },
 
   blockchain: {
@@ -139,14 +133,6 @@ export const config: Config = {
     activityPoints: validateAddress(
       'ACTIVITY_POINTS_ADDRESS',
       requireEnv('ACTIVITY_POINTS_ADDRESS', process.env.ACTIVITY_POINTS_ADDRESS)
-    ),
-    promptDO: validateAddress(
-      'PROMPT_DO_ADDRESS',
-      requireEnv('PROMPT_DO_ADDRESS', process.env.PROMPT_DO_ADDRESS)
-    ),
-    dataIndex: validateAddress(
-      'DATA_INDEX_ADDRESS',
-      requireEnv('DATA_INDEX_ADDRESS', process.env.DATA_INDEX_ADDRESS)
     ),
   },
 
@@ -168,14 +154,7 @@ export const config: Config = {
   rateLimit: {
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 min default
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
-    skipAuthenticatedUsers: parseBoolean(
-      process.env.RATE_LIMIT_SKIP_AUTHENTICATED,
-      false
-    ),
-  },
-
-  logging: {
-    level: process.env.LOG_LEVEL || 'info',
+    skipAuthenticatedUsers: parseBoolean(process.env.RATE_LIMIT_SKIP_AUTHENTICATED, false),
   },
 };
 

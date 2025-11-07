@@ -141,6 +141,8 @@ export interface HealthCheckResponse {
 export interface PZeroMintAuthRequest {
   /** Keccak256 hash of the prompt (NOT the full prompt!) */
   promptHash: string;
+  /** Ethereum address of the contract signer */
+  signerAddress: string;
   /** Ethereum address of the prompt author */
   author: string;
   /** Amount of activity points to reward */
@@ -174,14 +176,14 @@ export interface PZeroAuthorization {
  * These map to specific error conditions from the PZERO API.
  */
 export type PZeroErrorCode =
-  | 'QUOTA_EXCEEDED'          // Company exceeded monthly quota
-  | 'INVALID_API_KEY'         // Invalid PZERO_API_KEY
-  | 'INVALID_TIER'            // Feature not available in current tier
-  | 'AUTHORIZATION_EXPIRED'   // Signature has expired
-  | 'PZERO_TIMEOUT'           // PZERO API request timed out
-  | 'PZERO_UNAVAILABLE'       // PZERO service unavailable
-  | 'PZERO_ERROR'             // Generic PZERO error
-  | 'RATE_LIMITED';           // Too many requests to PZERO
+  | 'QUOTA_EXCEEDED' // Company exceeded monthly quota
+  | 'INVALID_API_KEY' // Invalid PZERO_API_KEY
+  | 'INVALID_TIER' // Feature not available in current tier
+  | 'AUTHORIZATION_EXPIRED' // Signature has expired
+  | 'PZERO_TIMEOUT' // PZERO API request timed out
+  | 'PZERO_UNAVAILABLE' // PZERO service unavailable
+  | 'PZERO_ERROR' // Generic PZERO error
+  | 'RATE_LIMITED'; // Too many requests to PZERO
 
 /**
  * PZERO quota information.

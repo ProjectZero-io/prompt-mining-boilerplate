@@ -73,6 +73,7 @@ async function retryWithBackoff<T>(
  */
 function handlePZeroApiError(error: unknown): never {
   if (axios.isAxiosError(error)) {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
     const axiosError = error as AxiosError<any>;
 
     // Timeout error
@@ -189,12 +190,14 @@ function handlePZeroApiError(error: unknown): never {
 export async function requestMintAuthorization(
   promptHash: string,
   author: string,
-  activityPoints: string
+  activityPoints: string,
+  signerAddress: string
 ): Promise<PZeroAuthorization> {
   const requestBody: PZeroMintAuthRequest = {
     promptHash, // ONLY hash, never full prompt
     author,
     activityPoints,
+    signerAddress,
     clientId: config.pzero.clientId,
     chainId: config.blockchain.chainId,
     timestamp: Date.now(),

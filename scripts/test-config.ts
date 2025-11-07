@@ -42,8 +42,6 @@ async function runTests() {
     'CHAIN_ID',
     'PROMPT_MINER_ADDRESS',
     'ACTIVITY_POINTS_ADDRESS',
-    'PROMPT_DO_ADDRESS',
-    'DATA_INDEX_ADDRESS',
     'PRIVATE_KEY',
     'PZERO_API_KEY',
     'PZERO_CLIENT_ID',
@@ -85,8 +83,6 @@ async function runTests() {
   const addresses = {
     PROMPT_MINER_ADDRESS: process.env.PROMPT_MINER_ADDRESS,
     ACTIVITY_POINTS_ADDRESS: process.env.ACTIVITY_POINTS_ADDRESS,
-    PROMPT_DO_ADDRESS: process.env.PROMPT_DO_ADDRESS,
-    DATA_INDEX_ADDRESS: process.env.DATA_INDEX_ADDRESS,
   };
 
   for (const [name, address] of Object.entries(addresses)) {
@@ -198,7 +194,7 @@ async function runTests() {
       );
 
       if (parseFloat(balanceEth) < 0.01) {
-        console.log('    ⚠️  Warning: Low balance. You may need more ETH for gas fees.');
+        console.log('    Warning: Low balance. You may need more ETH for gas fees.');
       }
     } catch (error) {
       // Don't fail on this test, just skip
@@ -213,7 +209,7 @@ async function runTests() {
   const failed = total - passed;
 
   if (failed === 0) {
-    console.log('✅ All tests passed!');
+    console.log('All tests passed!');
     console.log('═══════════════════════════════════════\n');
     console.log('Your configuration is ready. You can now run:');
     console.log('  npm run dev     - Start development server');
@@ -221,7 +217,7 @@ async function runTests() {
     console.log('  npm start       - Start production server\n');
     process.exit(0);
   } else {
-    console.log(`❌ ${failed} test(s) failed`);
+    console.log(`${failed} test(s) failed`);
     console.log('═══════════════════════════════════════\n');
     console.log('Please fix the issues above before running the server.');
     console.log('Check your .env file and ensure all values are correct.\n');
@@ -232,6 +228,6 @@ async function runTests() {
 
 // Run tests
 runTests().catch((error) => {
-  console.error('\n❌ Configuration test failed:', error.message);
+  console.error('\nConfiguration test failed:', error.message);
   process.exit(1);
 });

@@ -16,9 +16,9 @@ import * as promptMiningService from './services/promptMiningService';
 // Validate configuration before starting
 try {
   validateConfig();
-  console.log('✅ Configuration validated successfully');
+  console.log('Configuration validated successfully');
 } catch (error: any) {
-  console.error('❌ Configuration validation failed:', error.message);
+  console.error('Configuration validation failed:', error.message);
   console.error('\nPlease check your .env file and ensure all required variables are set.');
   process.exit(1);
 }
@@ -26,9 +26,9 @@ try {
 // Initialize blockchain connection
 try {
   promptMiningService.initialize();
-  console.log('✅ Blockchain initialized successfully');
+  console.log('Blockchain initialized successfully');
 } catch (error: any) {
-  console.error('❌ Blockchain initialization failed:', error.message);
+  console.error('Blockchain initialization failed:', error.message);
   console.error('\nPlease check your RPC_URL and ensure blockchain is accessible.');
   process.exit(1);
 }
@@ -46,7 +46,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging in development
 if (config.env === 'development') {
-  app.use((req, res, next) => {
+  app.use((req, _res, next) => {
     console.log(`${req.method} ${req.path}`);
     next();
   });
@@ -61,13 +61,14 @@ app.use(errorHandler);
 
 // Start server
 const server = app.listen(config.server.port, () => {
+  const host = config.env === 'production' ? '0.0.0.0' : 'localhost';
   console.log('\n═══════════════════════════════════════════════════');
-  console.log('🚀 Prompt Mining API Server');
+  console.log('Prompt Mining API Server');
   console.log('═══════════════════════════════════════════════════');
-  console.log(`📍 Environment:    ${config.env}`);
-  console.log(`🌐 Server:         http://${config.server.host}:${config.server.port}`);
-  console.log(`⛓️  Chain ID:       ${config.blockchain.chainId}`);
-  console.log(`🔑 PZERO Client:   ${config.pzero.clientId}`);
+  console.log(`Environment:    ${config.env}`);
+  console.log(`Server:         http://${host}:${config.server.port}`);
+  console.log(`Chain ID:       ${config.blockchain.chainId}`);
+  console.log(`PZERO Client:   ${config.pzero.clientId}`);
   console.log('═══════════════════════════════════════════════════');
   console.log('\nAvailable endpoints:');
   console.log('  GET  /health                           - Health check');
@@ -81,29 +82,29 @@ const server = app.listen(config.server.port, () => {
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
-  console.log('\n📴 SIGTERM received, shutting down gracefully...');
+  console.log('\nSIGTERM received, shutting down gracefully...');
   server.close(() => {
-    console.log('✅ Server closed');
+    console.log('Server closed');
     process.exit(0);
   });
 });
 
 process.on('SIGINT', () => {
-  console.log('\n📴 SIGINT received, shutting down gracefully...');
+  console.log('\nSIGINT received, shutting down gracefully...');
   server.close(() => {
-    console.log('✅ Server closed');
+    console.log('Server closed');
     process.exit(0);
   });
 });
 
 // Handle uncaught errors
 process.on('uncaughtException', (error) => {
-  console.error('❌ Uncaught Exception:', error);
+  console.error('Uncaught Exception:', error);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
 });
 

@@ -37,7 +37,7 @@ async function main() {
       rewardPoints
     );
 
-    console.log('\n✅ SUCCESS!');
+    console.log('\nSUCCESS!');
     console.log('─────────────────────────────────────────');
     console.log(`Transaction Hash:  ${result.transactionHash}`);
     console.log(`Prompt Hash:       ${result.promptHash}`);
@@ -52,17 +52,17 @@ async function main() {
     console.log(`Resets at: ${new Date(quota.resetAt * 1000).toLocaleString()}\n`);
 
   } catch (error: any) {
-    console.error('\n❌ ERROR:', error.message);
+    console.error('\nERROR:', error.message);
 
     // Handle specific error types
     if (error.name === 'PZeroError') {
       console.error(`PZERO Error Code: ${error.code}`);
 
       if (error.code === 'QUOTA_EXCEEDED') {
-        console.error('\n💡 Your PZERO quota is exceeded.');
+        console.error('\nYour PZERO quota is exceeded.');
         console.error('   Please upgrade your tier at https://dashboard.pzero.io');
       } else if (error.code === 'INVALID_API_KEY') {
-        console.error('\n💡 Invalid PZERO API key.');
+        console.error('\nInvalid PZERO API key.');
         console.error('   Check your PZERO_API_KEY in .env file');
       }
     }

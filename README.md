@@ -59,7 +59,7 @@ This boilerplate enables your ai infrastructure to reward your users for contrib
 
 To use this boilerplate, you need to register for PZERO API credentials:
 
-👉 **[Register at gateway.pzero.io/register](https://gateway.pzero.io/register)**
+ **[Register at gateway.pzero.io/register](https://gateway.pzero.io/register)**
 
 You'll receive:
 - `PZERO_API_KEY` - Your API authentication key
@@ -235,7 +235,7 @@ Get these credentials at **[gateway.pzero.io/register](https://gateway.pzero.io/
 | `RATE_LIMIT_SKIP_AUTHENTICATED` | Skip rate limit for authenticated users | No | `true`, `false` |
 | `LOG_LEVEL` | Logging level | No | `info`, `debug`, `warn`, `error` |
 
-**⚠️ Security Warning**: Never commit your `.env` file or expose private keys. Use secure key management systems in production.
+**Security Warning**: Never commit your `.env` file or expose private keys. Use secure key management systems in production.
 
 
 ## Verifying Your Configuration
@@ -261,7 +261,7 @@ This automated verification script will check:
 
 ### Example Output
 
-**✅ All tests passed:**
+**All tests passed:**
 ```
 ═══════════════════════════════════════
   Configuration Verification Tests
@@ -289,7 +289,7 @@ This automated verification script will check:
 ✓ Wallet Balance: 0.5 ETH (Wallet: 0x1234567...)
 
 ═══════════════════════════════════════
-✅ All tests passed!
+All tests passed!
 ═══════════════════════════════════════
 
 Your configuration is ready. You can now run:
@@ -298,12 +298,12 @@ Your configuration is ready. You can now run:
   npm start       - Start production server
 ```
 
-**❌ Tests failed:**
+**Tests failed:**
 ```
 ✗ PZERO_API_KEY: Missing!
 ✗ PZERO_API: Cannot reach PZERO API (ENOTFOUND)
 
-❌ 2 test(s) failed
+2 test(s) failed
 ═══════════════════════════════════════
 
 Please fix the issues above before running the server.
@@ -354,20 +354,111 @@ Authentication requirements per endpoint are configurable via environment variab
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
 | `GET` | `/health` | Health check endpoint | No |
-| `POST` | `/api/prompts/mint` | Mint a new prompt and reward user | Configurable (default: Yes) |
+| `GET` | `/api/activity-points/:address` | Get activity points balance for an address | Configurable (default: No) |
 | `GET` | `/api/prompts/:hash` | Check if prompt is minted | Configurable (default: No) |
+| `POST` | `/api/prompts/authorize` | Get PZERO authorization for user-signed mint | Configurable (default: Yes) |
+| `POST` | `/api/prompts/signable-mint-data` | Get EIP-712 typed data for meta-transaction | Configurable (default: Yes) |
+| `POST` | `/api/prompts/execute-metatx` | Execute meta-transaction (relayer mode) | Configurable (default: Yes) |
+| `POST` | `/api/prompts/mint-for-user` | Mint on behalf of user (backend-signed) | Configurable (default: Yes) |
 
 ### Mint Prompt
 
-**Endpoint**: `POST /api/prompts/mint`
+There are **three ways** to mint prompts depending on your use case:
 
-**Authentication**: Required (configurable via `REQUIRE_AUTH_MINT`)
+---
 
-**Headers**:
+#### Option 1: User-Signed Transaction (`/api/prompts/authorize`)
+
+**Best for:** Public LLM services, decentralized applications, Web3-native platforms  
+**User pays gas** | **User signs transaction** | **Requires wallet (Metamask)**
+
+**Endpoint**: `POST /api/prompts/authorize`
+
+**Request Body**:
+```json
+{
+  "prompt": "What is artificial intelligence?",
+  "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+  "activityPoints": "10"
+}
 ```
-Content-Type: application/json
-x-api-key: your-api-key-here
+
+**Response** (user signs this with Metamask):
+```json
+{
+  "success": true,
+  "data": {
+    "to": "0x...",
+    "data": "0x...",
+    "value": "0"
+  }
+}
 ```
+
+**Example:** See [`examples/frontend/user-signed-transaction.html`](examples/frontend/user-signed-transaction.html)
+
+---
+
+#### Option 2: Meta-Transaction (`/api/prompts/signable-mint-data` + `/api/prompts/execute-metatx`)
+
+**Best for:** Enterprise deployments, onboarding non-crypto users  
+**Backend pays gas** | **User signs message (EIP-712)** | **Requires wallet (Metamask)**
+
+**Step 1 - Get Signable Data**: `POST /api/prompts/signable-mint-data`
+
+**Request**:
+```json
+{
+  "prompt": "What is artificial intelligence?",
+  "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+  "activityPoints": "10"
+}
+```
+
+**Response** (user signs with Metamask):
+```json
+{
+  "success": true,
+  "data": {
+    "domain": { ... },
+    "types": { ... },
+    "message": { ... }
+  }
+}
+```
+
+**Step 2 - Execute**: `POST /api/prompts/execute-metatx`
+
+**Request**:
+```json
+{
+  "typedData": { ... },
+  "signature": "0x..."
+}
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "transactionHash": "0x...",
+    "promptHash": "0x...",
+    "blockNumber": 12345678
+  }
+}
+```
+
+**Example:** See [`examples/frontend/message-signing-auth.html`](examples/frontend/message-signing-auth.html)
+
+---
+
+#### Option 3: Backend-Signed Mint (`/api/prompts/mint-for-user`)
+
+**Best for:** Rewarding users without wallets, promotional campaigns, onboarding flows  
+**Backend pays gas** | **No user signature** | **No wallet required**
+
+**Endpoint**: `POST /api/prompts/mint-for-user`
 
 **Request Body**:
 ```json
@@ -390,14 +481,24 @@ x-api-key: your-api-key-here
 }
 ```
 
+**Use Cases:**
+- Reward users who don't have wallets yet
+- Promotional campaigns (mint prompts for all users)
+- Onboarding flows (give new users their first prompts)
+- Admin operations (retroactive rewards)
+
+**Security Note:** This endpoint allows the backend to mint prompts for any address. Ensure proper access control and validation in production.
+
+---
+
 
 ## Frontend Integration
 
-This boilerplate provides **two integration modes** for frontend applications, with complete working examples using Metamask.
+This boilerplate provides **three integration modes** for frontend applications, with complete working examples using Metamask.
 
-### 🎯 Integration Modes
+### Integration Modes
 
-#### 1. User-Signed Transaction Mode (Recommended)
+#### 1. User-Signed Transaction Mode
 
 **Best for:** Public LLM services, decentralized applications, Web3-native platforms
 
@@ -408,20 +509,22 @@ Users sign blockchain transactions directly with their Metamask wallet. They pay
 User → Backend (get authorization) → User signs TX with Metamask → Blockchain → Rewards
 ```
 
+**Endpoint:** `POST /api/prompts/authorize`
+
 **Example:** [`examples/frontend/user-signed-transaction.html`](examples/frontend/user-signed-transaction.html)
 
 **Pros:**
-- ✅ User owns the transaction (true Web3)
-- ✅ Transparent on-chain record
-- ✅ Decentralized experience
+- User owns the transaction (true Web3)
+- Transparent on-chain record
+- Decentralized experience
 
 **Cons:**
-- ❌ Requires Metamask and gas tokens
-- ❌ UX friction (transaction popup)
+- Requires Metamask and gas tokens
+- UX friction (transaction popup)
 
 ---
 
-#### 2. Message Signing Authentication (Optional)
+#### 2. Meta-Transaction Mode (EIP-712 Message Signing)
 
 **Best for:** Enterprise deployments, onboarding non-crypto users, high-volume services
 
@@ -432,16 +535,45 @@ Users sign a message (free, no gas) to prove wallet ownership. Your backend subm
 User → Signs message (free) → Backend verifies → Backend submits TX → Rewards
 ```
 
+**Endpoints:** 
+- `POST /api/prompts/signable-mint-data` (get typed data)
+- `POST /api/prompts/execute-metatx` (execute)
+
 **Example:** [`examples/frontend/message-signing-auth.html`](examples/frontend/message-signing-auth.html)
 
 **Pros:**
-- ✅ No gas fees for users
-- ✅ Seamless UX (no transaction popups)
-- ✅ Easy onboarding
+- No gas fees for users
+- Seamless UX (no transaction popups)
+- User proves wallet ownership
 
 **Cons:**
-- ❌ Company pays all gas fees
-- ❌ Less decentralized
+- Company pays all gas fees
+- Requires user signature (still needs wallet)
+
+---
+
+#### 3. Backend-Signed Mode (No User Interaction)
+
+**Best for:** Rewarding users without wallets, promotional campaigns, onboarding flows
+
+Backend mints prompts directly without any user signature or wallet interaction.
+
+**Flow:**
+```
+Backend → Blockchain (backend signs & pays gas) → Rewards user address
+```
+
+**Endpoint:** `POST /api/prompts/mint-for-user`
+
+**Pros:**
+- No wallet required
+- Zero user interaction
+- Perfect for onboarding and promotions
+
+**Cons:**
+- Company pays all gas fees
+- User doesn't prove ownership
+- Requires strong backend access control
 
 ---
 
@@ -525,14 +657,39 @@ Your server will run at `http://localhost:3000` (or your configured `PORT`). Tes
 
 ### Docker Deployment
 
-This boilerplate includes Docker support for containerized deployments:
+This boilerplate is **100% Dockerized** and production-ready. See the complete Docker deployment guide:
+
+** [Full Docker Documentation](docs/DOCKER.md)** - Comprehensive guide with private npm package setup
+
+** [Quick Start](DOCKER-QUICK-START.md)** - Get running in 30 seconds
+
+#### Quick Docker Setup
 
 ```bash
-# Build Docker image
-docker build -t prompt-mining-api .
+# 1. Set your npm token (required for private @project_zero/prompt-mining-sdk)
+export NPM_TOKEN=$(cat ~/.npmrc | grep "_authToken" | cut -d '=' -f 2)
 
-# Run container locally for testing
+# 2. Build and run with Docker Compose
+docker-compose up -d --build
+
+# 3. View logs
+docker-compose logs -f
+
+# 4. Test health endpoint
+curl http://localhost:3000/health
+```
+
+#### Manual Docker Build
+
+```bash
+# Build with private npm package support
+docker build --build-arg NPM_TOKEN=$NPM_TOKEN -t prompt-mining-api .
+
+# Run container
 docker run -p 3000:3000 --env-file .env prompt-mining-api
+```
+
+**Note**: This project uses the private npm package `@project_zero/prompt-mining-sdk`. You must provide an NPM authentication token to build the Docker image. See [docs/DOCKER.md](docs/DOCKER.md) for details.
 
 # Or use Docker Compose
 docker-compose up -d
@@ -587,6 +744,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ by ProjectZero**
+**Built with  by ProjectZero**
 
 For support, please open an issue or contact us at support@projectzero.io

@@ -32,7 +32,7 @@ const startTime = Date.now();
  */
 router.get(
   '/',
-  asyncHandler(async (req: Request, res: Response) => {
+  asyncHandler(async (_req: Request, res: Response) => {
     let blockchainStatus: 'connected' | 'disconnected' = 'disconnected';
     let chainId: string | undefined;
     let blockNumber: number | undefined;
@@ -76,7 +76,7 @@ router.get(
     };
 
     // Return appropriate status code
-    const statusCode = status === 'healthy' ? 200 : status === 'degraded' ? 200 : 503;
+    const statusCode = status === 'healthy' ? 200 : 503;
     res.status(statusCode).json(response);
   })
 );

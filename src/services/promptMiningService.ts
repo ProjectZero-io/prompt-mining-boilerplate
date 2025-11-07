@@ -1,11 +1,9 @@
 import * as pzeroAuthService from './pzeroAuthService';
 import * as blockchainService from './blockchainService';
-import { hashPrompt } from '../utils/crypto';
-import {
-  MintPromptResponse,
-  PromptStatusResponse,
-  ActivityPointsBalanceResponse,
-} from '../types';
+import { hashPrompt, encodeActivityPoints } from '../utils/crypto';
+import { PromptStatusResponse, ActivityPointsBalanceResponse } from '../types';
+import { config } from '../config';
+import { ERC2771_FORWARD_REQUEST_TYPES } from '@project_zero/prompt-mining-sdk';
 
 /**
  * High-level orchestration service for prompt mining operations.
@@ -20,76 +18,6 @@ import {
  * - Only keccak256 hashes are shared for authorization
  * - Full prompts go directly to blockchain (decentralized, public ledger)
  */
-
-/**
- * Mints a prompt with privacy-preserving PZERO authorization.
- *
- * This function orchestrates the complete minting flow:
- * 1. Hash prompt locally (keeps full text private from PZERO)
- * 2. Request PZERO authorization with hash only
- * 3. Mint to blockchain with full prompt + authorization signature
- *
- * @param prompt - User's prompt text (PRIVACY: never sent to PZERO)
- * @param author - Ethereum address of the prompt author
- * @param activityPoints - Amount of activity points to reward
- * @returns Mint result with transaction details
- *
- * @throws {PZeroError} If PZERO authorization fails
- * @throws {Error} If blockchain transaction fails
- *
- * @example
- * const result = await mintPrompt(
- *   "What is the meaning of life?",
- *   "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
- *   "10"
- * );
- * console.log('Minted!', result.transactionHash);
- */
-export async function mintPrompt(
-  prompt: string,
-  author: string,
-  activityPoints: string
-): Promise<MintPromptResponse> {
-  console.log('=== Privacy-Preserving Mint Flow ===');
-
-  // Step 1: Hash prompt locally
-  // PRIVACY: This ensures the full prompt never leaves this server
-  const promptHash = hashPrompt(prompt);
-  console.log(`1. Hashed prompt locally: ${promptHash.slice(0, 10)}...`);
-
-  // Step 2: Request PZERO authorization
-  // PRIVACY: Only the HASH is sent to PZERO, never the full prompt
-  console.log(`2. Requesting PZERO authorization (hash only)...`);
-  const authorization = await pzeroAuthService.requestMintAuthorization(
-    promptHash,
-    author,
-    activityPoints
-  );
-  console.log(`   ✅ Authorization received: ${authorization.signature.slice(0, 10)}...`);
-
-  // Step 3: Mint to blockchain
-  // PRIVACY: Full prompt sent directly to blockchain (not through PZERO)
-  console.log(`3. Minting to blockchain (full prompt + authorization)...`);
-  const receipt = await blockchainService.mintPromptToBlockchain(
-    prompt,            // Full prompt goes here (to blockchain only!)
-    author,
-    activityPoints,
-    authorization
-  );
-  console.log(`   ✅ Minted! Tx: ${receipt.hash}`);
-
-  console.log('=== Mint Complete ===\n');
-
-  return {
-    transactionHash: receipt.hash,
-    promptHash,
-    blockNumber: receipt.blockNumber,
-    pzeroAuthorization: {
-      nonce: authorization.nonce,
-      expiresAt: authorization.expiresAt,
-    },
-  };
-}
 
 /**
  * Gets PZERO authorization for user-signed minting.
@@ -148,9 +76,10 @@ export async function authorizePromptMint(
   const authorization = await pzeroAuthService.requestMintAuthorization(
     promptHash,
     author,
-    activityPoints
+    activityPoints,
+    config.contracts.promptMiner
   );
-  console.log(`   ✅ Authorization received: ${authorization.signature.slice(0, 10)}...`);
+  console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
   console.log('=== Returning authorization to frontend ===\n');
 
   return {
@@ -161,7 +90,7 @@ export async function authorizePromptMint(
       expiresAt: authorization.expiresAt,
     },
     mintData: {
-      prompt,  // Full prompt returned so frontend can include in transaction
+      prompt, // Full prompt returned so frontend can include in transaction
       author,
       activityPoints,
     },
@@ -180,14 +109,10 @@ export async function authorizePromptMint(
  * const status = await getPromptStatus("0x1234...");
  * console.log('Is minted:', status.isMinted);
  */
-export async function getPromptStatus(
-  promptOrHash: string
-): Promise<PromptStatusResponse> {
+export async function getPromptStatus(promptOrHash: string): Promise<PromptStatusResponse> {
   // If input looks like a hash (0x...), use it directly
   // Otherwise, hash it first
-  const promptHash = promptOrHash.startsWith('0x')
-    ? promptOrHash
-    : hashPrompt(promptOrHash);
+  const promptHash = promptOrHash.startsWith('0x') ? promptOrHash : hashPrompt(promptOrHash);
 
   const isMinted = await blockchainService.checkPromptMinted(promptHash);
 
@@ -209,9 +134,7 @@ export async function getPromptStatus(
  * const balance = await getUserBalance("0x...");
  * console.log(`Balance: ${balance.balanceEther} ${balance.symbol}`);
  */
-export async function getUserBalance(
-  address: string
-): Promise<ActivityPointsBalanceResponse> {
+export async function getUserBalance(address: string): Promise<ActivityPointsBalanceResponse> {
   const balance = await blockchainService.getActivityPointsBalance(address);
 
   return {
@@ -243,6 +166,276 @@ export async function getQuotaStatus(): Promise<{
 }
 
 /**
+ * Gets signable meta-transaction data for user-signed minting with ERC2771 forwarder.
+ *
+ * META-TRANSACTION MODE (EIP-2771):
+ * This function prepares everything needed for the user to sign an EIP-712 typed data message
+ * that will be used to execute a gasless meta-transaction through the ERC2771 forwarder.
+ *
+ * Flow:
+ * 1. Hash prompt locally (privacy preserved)
+ * 2. Request PZERO authorization with hash only
+ * 3. Prepare meta-transaction typed data using SDK
+ * 4. Return domain, types, and request for frontend to sign
+ *
+ * @param prompt - User's prompt text (PRIVACY: never sent to PZERO)
+ * @param author - Ethereum address of the prompt author (also the meta-tx signer)
+ * @param activityPoints - Amount of activity points to reward
+ * @param gas - Gas limit for the meta-transaction (default: 500000)
+ * @param deadline - Timestamp deadline for the meta-transaction (default: 1 hour from now)
+ * @returns Typed data for EIP-712 signing and additional metadata
+ *
+ * @throws {PZeroError} If PZERO authorization fails
+ *
+ * @example
+ * const signableData = await getSignableMintData(
+ *   "What is AI?",
+ *   "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+ *   "10",
+ *   500000n,
+ *   Math.floor(Date.now() / 1000) + 3600
+ * );
+ * // Frontend uses signableData.domain, signableData.types, and signableData.requestForSigning
+ * // to create an EIP-712 signature with the user's wallet
+ */
+export async function getSignableMintData(
+  prompt: string,
+  author: string,
+  activityPoints: string | number,
+  gas: bigint = 500000n,
+  deadline?: bigint
+): Promise<{
+  promptHash: string;
+  domain: {
+    name: string;
+    version: string;
+    chainId: bigint;
+    verifyingContract: string;
+  };
+  types: typeof ERC2771_FORWARD_REQUEST_TYPES;
+  requestForSigning: {
+    from: string;
+    to: string;
+    value: bigint;
+    gas: bigint;
+    nonce: bigint;
+    deadline: bigint;
+    data: string;
+  };
+  authorization: {
+    signature: string;
+    nonce: string;
+    expiresAt: number;
+  };
+}> {
+  console.log('=== Meta-Transaction Signable Data Flow ===');
+
+  // Set default deadline to 1 hour from now if not provided
+  const metaTxDeadline = deadline ?? BigInt(Math.floor(Date.now() / 1000) + 3600);
+
+  // Step 1: Hash prompt locally
+  const promptHash = hashPrompt(prompt);
+  console.log(`1. Hashed prompt locally: ${promptHash.slice(0, 10)}...`);
+
+  // Step 2: Encode activity points
+  const encodedPoints = encodeActivityPoints(activityPoints);
+  console.log(`2. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
+
+  // Step 3: Request PZERO authorization (hash only!)
+  console.log(`3. Requesting PZERO authorization (hash only)...`);
+  const authorization = await pzeroAuthService.requestMintAuthorization(
+    promptHash,
+    author,
+    String(activityPoints),
+    config.contracts.promptMiner
+  );
+  console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
+
+  // Step 4: Get typed data for meta-transaction using SDK
+  console.log(`4. Preparing meta-transaction typed data...`);
+  const typedData = await blockchainService.getTypedDataForMetaTxMint(
+    author,
+    gas,
+    metaTxDeadline,
+    promptHash,
+    encodedPoints,
+    authorization.signature
+  );
+  console.log(`   Typed data prepared for signing`);
+
+  console.log('=== Returning signable data to frontend ===\n');
+
+  return {
+    promptHash,
+    domain: typedData.domain,
+    types: typedData.types,
+    requestForSigning: typedData.requestForSigning,
+    authorization: {
+      signature: authorization.signature,
+      nonce: authorization.nonce,
+      expiresAt: authorization.expiresAt,
+    },
+  };
+}
+
+/**
+ * Executes a meta-transaction mint through the ERC2771 forwarder.
+ *
+ * RELAYER MODE:
+ * This function acts as a relayer, receiving the user's signature and
+ * submitting the meta-transaction to the ERC2771 forwarder on their behalf.
+ *
+ * Flow:
+ * 1. Receive user's signature and request data
+ * 2. Build the complete forward request using SDK
+ * 3. Submit to ERC2771 forwarder (relayer pays gas)
+ * 4. Forwarder verifies signature and executes mint
+ * 5. User receives Activity Points without paying gas
+ *
+ * @param requestForSigning - The request data that was signed by the user
+ * @param forwardSignature - The user's EIP-712 signature
+ * @returns Transaction receipt
+ *
+ * @throws {Error} If meta-transaction execution fails
+ *
+ * @example
+ * const receipt = await executeMetaTxMint(
+ *   {
+ *     from: "0x...",
+ *     to: "0x...",
+ *     value: 0n,
+ *     gas: 500000n,
+ *     nonce: 0n,
+ *     deadline: 1735401600n,
+ *     data: "0x..."
+ *   },
+ *   "0xUserSignature..."
+ * );
+ */
+export async function executeMetaTxMint(
+  requestForSigning: {
+    from: string;
+    to: string;
+    value: bigint;
+    gas: bigint;
+    nonce: bigint;
+    deadline: bigint;
+    data: string;
+  },
+  forwardSignature: string
+): Promise<{
+  transactionHash: string;
+  blockNumber: number;
+  from: string;
+  gasUsed: string;
+}> {
+  console.log('=== Meta-Transaction Execution Flow ===');
+  console.log(`Relayer executing meta-transaction for user: ${requestForSigning.from}`);
+
+  const receipt = await blockchainService.executeMetaTxMint(requestForSigning, forwardSignature);
+
+  console.log(`   Meta-transaction executed! Tx: ${receipt.hash}`);
+  console.log('=== Meta-Transaction Complete ===\n');
+
+  return {
+    transactionHash: receipt.hash,
+    blockNumber: receipt.blockNumber,
+    from: requestForSigning.from,
+    gasUsed: receipt.gasUsed.toString(),
+  };
+}
+
+/**
+ * Mints a prompt on behalf of a user (backend-signed mode).
+ *
+ * BACKEND-SIGNED MODE:
+ * This function allows the backend to mint prompts for any user without requiring
+ * them to sign anything or pay gas. The backend wallet signs and submits the transaction.
+ *
+ * Flow:
+ * 1. Hash prompt locally (privacy preserved)
+ * 2. Request PZERO authorization with hash only
+ * 3. Backend signs and submits transaction directly
+ * 4. Specified author receives Activity Points
+ *
+ * @param prompt - User's prompt text (PRIVACY: never sent to PZERO)
+ * @param author - Ethereum address that will receive the Activity Points
+ * @param activityPoints - Amount of activity points to reward
+ * @returns Transaction receipt with mint details
+ *
+ * @throws {PZeroError} If PZERO authorization fails
+ * @throws {Error} If blockchain transaction fails
+ *
+ * @example
+ * // Backend mints and rewards user (user doesn't need wallet or signature)
+ * const result = await mintPromptForUser(
+ *   "What is AI?",
+ *   "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",  // This user receives rewards
+ *   "10"
+ * );
+ * console.log('Minted!', result.transactionHash);
+ */
+export async function mintPromptForUser(
+  prompt: string,
+  author: string,
+  activityPoints: string
+): Promise<{
+  transactionHash: string;
+  promptHash: string;
+  blockNumber: number;
+  gasUsed: string;
+  pzeroAuthorization: {
+    nonce: string;
+    expiresAt: number;
+  };
+}> {
+  console.log('=== Backend-Signed Mint Flow ===');
+  console.log(`Minting prompt for author: ${author}`);
+
+  // Step 1: Hash prompt locally
+  const promptHash = hashPrompt(prompt);
+  console.log(`1. Hashed prompt locally: ${promptHash.slice(0, 10)}...`);
+
+  // Step 2: Encode activity points
+  const encodedPoints = encodeActivityPoints(activityPoints);
+  console.log(`2. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
+
+  // Step 3: Request PZERO authorization (hash only!)
+  console.log(`3. Requesting PZERO authorization (hash only)...`);
+  const authorization = await pzeroAuthService.requestMintAuthorization(
+    promptHash,
+    author,
+    activityPoints,
+    config.contracts.promptMiner
+  );
+  console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
+
+  // Step 4: Backend signs and submits transaction
+  console.log(`4. Backend signing and submitting transaction...`);
+  const receipt = await blockchainService.executeMint(
+    author, // User who receives rewards
+    promptHash, // Prompt hash
+    '', // Content URI (empty for now)
+    encodedPoints, // Encoded activity points
+    authorization.signature // PZERO authorization
+  );
+  console.log(`   Minted! Tx: ${receipt.hash}`);
+
+  console.log('=== Backend-Signed Mint Complete ===\n');
+
+  return {
+    transactionHash: receipt.hash,
+    promptHash,
+    blockNumber: receipt.blockNumber,
+    gasUsed: receipt.gasUsed.toString(),
+    pzeroAuthorization: {
+      nonce: authorization.nonce,
+      expiresAt: authorization.expiresAt,
+    },
+  };
+}
+
+/**
  * Initializes the blockchain connection.
  *
  * This should be called at application startup to ensure
@@ -253,5 +446,5 @@ export async function getQuotaStatus(): Promise<{
 export function initialize(): void {
   console.log('Initializing prompt mining service...');
   blockchainService.initializeBlockchain();
-  console.log('✅ Blockchain initialized');
+  console.log('Blockchain initialized');
 }
