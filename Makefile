@@ -2,7 +2,7 @@
 
 # Docker build configuration
 DOCKER_REGISTRY := europe-west1-docker.pkg.dev/pzero-shared/backend
-DOCKER_IMAGE_NAME := project-zero-chat-backend
+DOCKER_IMAGE_NAME := prompt-mining-boilerplate
 DOCKER_PLATFORM := linux/amd64
 GIT_SHORT_SHA := $(shell git rev-parse --short HEAD)
 DOCKER_TAG_LATEST := $(DOCKER_REGISTRY)/$(DOCKER_IMAGE_NAME):latest
