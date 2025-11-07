@@ -2,7 +2,7 @@
 
 This guide covers deploying the Prompt Mining Boilerplate using Docker, including handling private npm packages.
 
-## 📋 Table of Contents
+##  Table of Contents
 
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
@@ -17,12 +17,12 @@ This guide covers deploying the Prompt Mining Boilerplate using Docker, includin
 
 This repository is **100% Dockerized** and production-ready. The Docker setup includes:
 
-- ✅ Multi-stage build for optimized image size
-- ✅ Private npm package support (@project_zero/prompt-mining-sdk)
-- ✅ Non-root user for security
-- ✅ Health checks built-in
-- ✅ Production-optimized Node.js runtime
-- ✅ Docker Compose for easy deployment
+- Multi-stage build for optimized image size
+- Private npm package support (@project_zero/prompt-mining-sdk)
+- Non-root user for security
+- Health checks built-in
+- Production-optimized Node.js runtime
+- Docker Compose for easy deployment
 
 ## Prerequisites
 
@@ -89,7 +89,7 @@ If you don't have access to the private package, the build will fail:
 
 ```bash
 docker build -t prompt-mining-api:latest .
-# ❌ Error: Unable to authenticate with npm registry
+# Error: Unable to authenticate with npm registry
 ```
 
 ### Verify the Build
@@ -220,7 +220,7 @@ docker-compose up -d --build
 
 ### Important: Development vs Production Configuration
 
-**⚠️ WARNING:** The current `docker-compose.yml` is configured for **LOCAL DEVELOPMENT ONLY**. It connects to a local PZERO Gateway container.
+**WARNING:** The current `docker-compose.yml` is configured for **LOCAL DEVELOPMENT ONLY**. It connects to a local PZERO Gateway container.
 
 **For production, you MUST:**
 
@@ -278,7 +278,7 @@ Or manually edit `docker-compose.yml` to remove:
 ```yaml
 # REMOVE THIS FOR PRODUCTION:
 networks:
-  - prompt-mining-api-gateway_pzero-network  # ❌ Development only!
+  - prompt-mining-api-gateway_pzero-network  # Development only!
 ```
 
 # Rate Limiting
@@ -331,16 +331,16 @@ docker logs prompt-mining-api-prod
 
 ### 5. Production Best Practices
 
-- ✅ Use secrets management (AWS Secrets Manager, HashiCorp Vault, etc.) instead of `.env` files
-- ✅ Use a reverse proxy (nginx, Traefik) for SSL/TLS termination
-- ✅ Set up monitoring (Prometheus, Grafana, Datadog)
-- ✅ Configure log aggregation (ELK, CloudWatch, etc.)
-- ✅ Use container orchestration (Kubernetes, Docker Swarm, ECS)
-- ✅ Implement automated backups for private keys (encrypted)
-- ✅ Set up CI/CD pipelines for automated deployments
-- ✅ Use multi-stage builds to minimize image size
-- ✅ Scan images for vulnerabilities (`docker scan`)
-- ✅ Run containers as non-root user (already configured)
+- Use secrets management (AWS Secrets Manager, HashiCorp Vault, etc.) instead of `.env` files
+- Use a reverse proxy (nginx, Traefik) for SSL/TLS termination
+- Set up monitoring (Prometheus, Grafana, Datadog)
+- Configure log aggregation (ELK, CloudWatch, etc.)
+- Use container orchestration (Kubernetes, Docker Swarm, ECS)
+- Implement automated backups for private keys (encrypted)
+- Set up CI/CD pipelines for automated deployments
+- Use multi-stage builds to minimize image size
+- Scan images for vulnerabilities (`docker scan`)
+- Run containers as non-root user (already configured)
 
 ## Troubleshooting
 
@@ -435,18 +435,18 @@ docker run -v ./data:/app/data ...
 
 ## Summary: Is This Repo 100% Dockerized?
 
-✅ **YES** - This repository is 100% dockerized and production-ready:
+**YES** - This repository is 100% dockerized and production-ready:
 
 | Feature | Status | Notes |
 |---------|--------|-------|
-| Dockerfile | ✅ Complete | Multi-stage build, optimized |
-| Docker Compose | ✅ Complete | Ready for deployment |
-| Private npm packages | ✅ Supported | Requires NPM_TOKEN build arg |
-| Health checks | ✅ Built-in | Automatic container health monitoring |
-| Security | ✅ Non-root user | Runs as user `nodejs` (UID 1001) |
-| Environment config | ✅ .env support | All configs via environment variables |
-| Production ready | ✅ Yes | Optimized, secure, monitored |
-| Documentation | ✅ Complete | This guide + README.md |
+| Dockerfile | Complete | Multi-stage build, optimized |
+| Docker Compose | Complete | Ready for deployment |
+| Private npm packages | Supported | Requires NPM_TOKEN build arg |
+| Health checks | Built-in | Automatic container health monitoring |
+| Security | Non-root user | Runs as user `nodejs` (UID 1001) |
+| Environment config | .env support | All configs via environment variables |
+| Production ready | Yes | Optimized, secure, monitored |
+| Documentation | Complete | This guide + README.md |
 
 ### Quick Start Commands
 
@@ -467,4 +467,4 @@ docker-compose logs -f
 curl http://localhost:3000/health
 ```
 
-**Everything can be installed and run in Docker!** 🐳
+**Everything can be installed and run in Docker!** 

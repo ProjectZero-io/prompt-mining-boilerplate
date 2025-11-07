@@ -318,7 +318,7 @@ export async function executeMetaTxMint(
     // Wait for transaction confirmation
     const receipt = await tx.wait();
 
-    console.log(`✅ Meta-transaction executed! Block: ${receipt!.blockNumber}`);
+    console.log(`Meta-transaction executed! Block: ${receipt!.blockNumber}`);
     console.log(`   Gas used: ${receipt!.gasUsed.toString()}`);
 
     return receipt!;
@@ -406,7 +406,7 @@ export async function executeMint(
     // Wait for transaction confirmation
     const receipt = await tx.wait();
 
-    console.log(`✅ Prompt minted! Block: ${receipt!.blockNumber}`);
+    console.log(`Prompt minted! Block: ${receipt!.blockNumber}`);
     console.log(`   Gas used: ${receipt!.gasUsed.toString()}`);
 
     return receipt!;

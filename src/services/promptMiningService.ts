@@ -79,7 +79,7 @@ export async function authorizePromptMint(
     activityPoints,
     config.contracts.promptMiner
   );
-  console.log(`   ✅ Authorization received: ${authorization.signature.slice(0, 10)}...`);
+  console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
   console.log('=== Returning authorization to frontend ===\n');
 
   return {
@@ -249,7 +249,7 @@ export async function getSignableMintData(
     String(activityPoints),
     config.contracts.promptMiner
   );
-  console.log(`   ✅ Authorization received: ${authorization.signature.slice(0, 10)}...`);
+  console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
 
   // Step 4: Get typed data for meta-transaction using SDK
   console.log(`4. Preparing meta-transaction typed data...`);
@@ -261,7 +261,7 @@ export async function getSignableMintData(
     encodedPoints,
     authorization.signature
   );
-  console.log(`   ✅ Typed data prepared for signing`);
+  console.log(`   Typed data prepared for signing`);
 
   console.log('=== Returning signable data to frontend ===\n');
 
@@ -334,7 +334,7 @@ export async function executeMetaTxMint(
 
   const receipt = await blockchainService.executeMetaTxMint(requestForSigning, forwardSignature);
 
-  console.log(`   ✅ Meta-transaction executed! Tx: ${receipt.hash}`);
+  console.log(`   Meta-transaction executed! Tx: ${receipt.hash}`);
   console.log('=== Meta-Transaction Complete ===\n');
 
   return {
@@ -408,7 +408,7 @@ export async function mintPromptForUser(
     activityPoints,
     config.contracts.promptMiner
   );
-  console.log(`   ✅ Authorization received: ${authorization.signature.slice(0, 10)}...`);
+  console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
 
   // Step 4: Backend signs and submits transaction
   console.log(`4. Backend signing and submitting transaction...`);
@@ -419,7 +419,7 @@ export async function mintPromptForUser(
     encodedPoints, // Encoded activity points
     authorization.signature // PZERO authorization
   );
-  console.log(`   ✅ Minted! Tx: ${receipt.hash}`);
+  console.log(`   Minted! Tx: ${receipt.hash}`);
 
   console.log('=== Backend-Signed Mint Complete ===\n');
 
@@ -446,5 +446,5 @@ export async function mintPromptForUser(
 export function initialize(): void {
   console.log('Initializing prompt mining service...');
   blockchainService.initializeBlockchain();
-  console.log('✅ Blockchain initialized');
+  console.log('Blockchain initialized');
 }

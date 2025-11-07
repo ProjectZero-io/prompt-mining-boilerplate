@@ -2,7 +2,7 @@
 
 This directory contains **complete, standalone examples** demonstrating how to integrate Metamask wallet functionality with the Prompt Mining Boilerplate for reward-based prompt submission.
 
-## 📁 Examples Overview
+##  Examples Overview
 
 ### 1. `user-signed-transaction.html` - User-Signed Transaction Mode (RECOMMENDED)
 
@@ -22,10 +22,10 @@ This directory contains **complete, standalone examples** demonstrating how to i
 - When you want users to have full control and ownership
 
 **User Experience:**
-- ✅ User owns the transaction (true Web3)
-- ✅ Transparent on-chain record
-- ❌ Requires Metamask and gas tokens
-- ❌ UX friction (Metamask popup for transaction)
+- User owns the transaction (true Web3)
+- Transparent on-chain record
+- Requires Metamask and gas tokens
+- UX friction (Metamask popup for transaction)
 
 ---
 
@@ -47,16 +47,16 @@ This directory contains **complete, standalone examples** demonstrating how to i
 - When you want seamless UX without gas fees
 
 **User Experience:**
-- ✅ No gas fees for users
-- ✅ Seamless UX (no transaction signing)
-- ✅ Cryptographically secure (EIP-712 signatures)
-- ✅ User maintains proof of authorship
-- ❌ Company pays all gas fees
-- ❌ Requires relayer infrastructure
+- No gas fees for users
+- Seamless UX (no transaction signing)
+- Cryptographically secure (EIP-712 signatures)
+- User maintains proof of authorship
+- Company pays all gas fees
+- Requires relayer infrastructure
 
 ---
 
-## 🎯 Which Example Should I Use?
+##  Which Example Should I Use?
 
 | Requirement | Recommended Example |
 |-------------|---------------------|
@@ -70,7 +70,7 @@ This directory contains **complete, standalone examples** demonstrating how to i
 
 ---
 
-## 📋 Prerequisites
+##  Prerequisites
 
 ### For All Examples
 
@@ -118,7 +118,7 @@ This directory contains **complete, standalone examples** demonstrating how to i
 
 ---
 
-## ⚙️ Configuration
+##  Configuration
 
 ### Step 1: Update Configuration in HTML Files
 
@@ -180,7 +180,7 @@ Backend should be running on `http://localhost:3000`
 
 ---
 
-## 🚀 How to Run the Examples
+## How to Run the Examples
 
 ### Option 1: Open Directly in Browser
 
@@ -265,7 +265,7 @@ async function mintPrompt(prompt, signer, address) {
 
 ---
 
-## 📖 Expected Behavior
+##  Expected Behavior
 
 ### User-Signed Transaction Example
 
@@ -302,7 +302,7 @@ async function mintPrompt(prompt, signer, address) {
 
 ---
 
-## 🔧 Troubleshooting
+##  Troubleshooting
 
 ### Metamask Not Detected
 
@@ -393,7 +393,7 @@ async function mintPrompt(prompt, signer, address) {
 
 ---
 
-## 🏗️ Integration Into Production
+##  Integration Into Production
 
 ### Security Considerations
 
@@ -462,7 +462,7 @@ async function mintPrompt(prompt, signer, address) {
 
 ---
 
-## 🤝 Support
+##  Support
 
 - **Documentation:** See main [README.md](../../README.md) and [docs/architecture.md](../../docs/architecture.md)
 - **Backend Issues:** Check backend logs and [CLAUDE.md](../../CLAUDE.md) for development guidelines
@@ -471,6 +471,6 @@ async function mintPrompt(prompt, signer, address) {
 
 ---
 
-## 📝 License
+##  License
 
 These examples are part of the Prompt Mining Boilerplate and share the same license as the main project.

@@ -59,7 +59,7 @@ This boilerplate enables your ai infrastructure to reward your users for contrib
 
 To use this boilerplate, you need to register for PZERO API credentials:
 
-👉 **[Register at gateway.pzero.io/register](https://gateway.pzero.io/register)**
+ **[Register at gateway.pzero.io/register](https://gateway.pzero.io/register)**
 
 You'll receive:
 - `PZERO_API_KEY` - Your API authentication key
@@ -235,7 +235,7 @@ Get these credentials at **[gateway.pzero.io/register](https://gateway.pzero.io/
 | `RATE_LIMIT_SKIP_AUTHENTICATED` | Skip rate limit for authenticated users | No | `true`, `false` |
 | `LOG_LEVEL` | Logging level | No | `info`, `debug`, `warn`, `error` |
 
-**⚠️ Security Warning**: Never commit your `.env` file or expose private keys. Use secure key management systems in production.
+**Security Warning**: Never commit your `.env` file or expose private keys. Use secure key management systems in production.
 
 
 ## Verifying Your Configuration
@@ -261,7 +261,7 @@ This automated verification script will check:
 
 ### Example Output
 
-**✅ All tests passed:**
+**All tests passed:**
 ```
 ═══════════════════════════════════════
   Configuration Verification Tests
@@ -289,7 +289,7 @@ This automated verification script will check:
 ✓ Wallet Balance: 0.5 ETH (Wallet: 0x1234567...)
 
 ═══════════════════════════════════════
-✅ All tests passed!
+All tests passed!
 ═══════════════════════════════════════
 
 Your configuration is ready. You can now run:
@@ -298,12 +298,12 @@ Your configuration is ready. You can now run:
   npm start       - Start production server
 ```
 
-**❌ Tests failed:**
+**Tests failed:**
 ```
 ✗ PZERO_API_KEY: Missing!
 ✗ PZERO_API: Cannot reach PZERO API (ENOTFOUND)
 
-❌ 2 test(s) failed
+2 test(s) failed
 ═══════════════════════════════════════
 
 Please fix the issues above before running the server.
@@ -486,7 +486,7 @@ There are **three ways** to mint prompts depending on your use case:
 - Onboarding flows (give new users their first prompts)
 - Admin operations (retroactive rewards)
 
-**⚠️ Security Note:** This endpoint allows the backend to mint prompts for any address. Ensure proper access control and validation in production.
+**Security Note:** This endpoint allows the backend to mint prompts for any address. Ensure proper access control and validation in production.
 
 ---
 
@@ -495,7 +495,7 @@ There are **three ways** to mint prompts depending on your use case:
 
 This boilerplate provides **three integration modes** for frontend applications, with complete working examples using Metamask.
 
-### 🎯 Integration Modes
+### Integration Modes
 
 #### 1. User-Signed Transaction Mode
 
@@ -513,13 +513,13 @@ User → Backend (get authorization) → User signs TX with Metamask → Blockch
 **Example:** [`examples/frontend/user-signed-transaction.html`](examples/frontend/user-signed-transaction.html)
 
 **Pros:**
-- ✅ User owns the transaction (true Web3)
-- ✅ Transparent on-chain record
-- ✅ Decentralized experience
+- User owns the transaction (true Web3)
+- Transparent on-chain record
+- Decentralized experience
 
 **Cons:**
-- ❌ Requires Metamask and gas tokens
-- ❌ UX friction (transaction popup)
+- Requires Metamask and gas tokens
+- UX friction (transaction popup)
 
 ---
 
@@ -541,13 +541,13 @@ User → Signs message (free) → Backend verifies → Backend submits TX → Re
 **Example:** [`examples/frontend/message-signing-auth.html`](examples/frontend/message-signing-auth.html)
 
 **Pros:**
-- ✅ No gas fees for users
-- ✅ Seamless UX (no transaction popups)
-- ✅ User proves wallet ownership
+- No gas fees for users
+- Seamless UX (no transaction popups)
+- User proves wallet ownership
 
 **Cons:**
-- ❌ Company pays all gas fees
-- ❌ Requires user signature (still needs wallet)
+- Company pays all gas fees
+- Requires user signature (still needs wallet)
 
 ---
 
@@ -565,14 +565,14 @@ Backend → Blockchain (backend signs & pays gas) → Rewards user address
 **Endpoint:** `POST /api/prompts/mint-for-user`
 
 **Pros:**
-- ✅ No wallet required
-- ✅ Zero user interaction
-- ✅ Perfect for onboarding and promotions
+- No wallet required
+- Zero user interaction
+- Perfect for onboarding and promotions
 
 **Cons:**
-- ❌ Company pays all gas fees
-- ❌ User doesn't prove ownership
-- ❌ Requires strong backend access control
+- Company pays all gas fees
+- User doesn't prove ownership
+- Requires strong backend access control
 
 ---
 
@@ -658,9 +658,9 @@ Your server will run at `http://localhost:3000` (or your configured `PORT`). Tes
 
 This boilerplate is **100% Dockerized** and production-ready. See the complete Docker deployment guide:
 
-**📖 [Full Docker Documentation](docs/DOCKER.md)** - Comprehensive guide with private npm package setup
+** [Full Docker Documentation](docs/DOCKER.md)** - Comprehensive guide with private npm package setup
 
-**⚡ [Quick Start](DOCKER-QUICK-START.md)** - Get running in 30 seconds
+** [Quick Start](DOCKER-QUICK-START.md)** - Get running in 30 seconds
 
 #### Quick Docker Setup
 
@@ -743,6 +743,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-**Built with ❤️ by ProjectZero**
+**Built with  by ProjectZero**
 
 For support, please open an issue or contact us at support@projectzero.io

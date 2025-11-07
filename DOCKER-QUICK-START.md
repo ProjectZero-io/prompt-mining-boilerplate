@@ -1,4 +1,4 @@
-# 🐳 Docker Quick Start
+#  Docker Quick Start
 
 **TL;DR**: Yes, this repo is **100% dockerized**. Everything can be installed and run in Docker.
 
@@ -54,12 +54,12 @@ docker-compose logs -f
 
 ## What's Included?
 
-- ✅ Multi-stage Docker build (optimized image size)
-- ✅ Private npm package support (@project_zero/prompt-mining-sdk)
-- ✅ Docker Compose configuration
-- ✅ Health checks
-- ✅ Non-root user (security)
-- ✅ Production-ready setup
+- Multi-stage Docker build (optimized image size)
+- Private npm package support (@project_zero/prompt-mining-sdk)
+- Docker Compose configuration
+- Health checks
+- Non-root user (security)
+- Production-ready setup
 
 ## Full Documentation
 

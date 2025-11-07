@@ -38,7 +38,7 @@ This boilerplate enables AI companies to reward users for quality prompts with o
 │  PZERO API  │  ← B2B Gateway (ProjectZero Service)
 │             │
 │ Receives:   │
-│ • Hash only │  ✅ NEVER sees full prompts
+│ • Hash only │  NEVER sees full prompts
 │ • Author    │
 │ • Reward    │
 │             │
@@ -98,19 +98,19 @@ This boilerplate enables AI companies to reward users for quality prompts with o
 
 ```
 Full Prompt Text:
-  ├─▶ Stays in YOUR infrastructure ✅
-  ├─▶ NEVER sent to PZERO ✅
-  └─▶ ONLY goes to blockchain (public, decentralized) ✅
+  ├─▶ Stays in YOUR infrastructure
+  ├─▶ NEVER sent to PZERO
+  └─▶ ONLY goes to blockchain (public, decentralized)
 
 Prompt Hash (keccak256):
-  ├─▶ Sent to PZERO for authorization ✅
-  └─▶ PZERO cannot reverse hash to get prompt ✅
+  ├─▶ Sent to PZERO for authorization
+  └─▶ PZERO cannot reverse hash to get prompt
 
 PZERO Gateway (B2B):
   ├─▶ Receives: Hash only
   ├─▶ Tracks: Usage quotas and rate limits
   ├─▶ Returns: Authorization signature
-  └─▶ NEVER sees: Full prompts ✅
+  └─▶ NEVER sees: Full prompts
 ```
 
 **Why this matters:** Your prompts may contain sensitive user data or proprietary information. PZERO never sees the actual prompt content - only a cryptographic hash. The full prompt goes directly to the blockchain where it becomes public and immutable.
@@ -240,17 +240,17 @@ console.log('Minted! Transaction:', receipt.hash);
 ### Pros & Cons
 
 **Pros:**
-- ✅ User owns the transaction (true Web3)
-- ✅ Decentralized experience
-- ✅ User controls gas fees
-- ✅ Transparent on-chain record
-- ✅ No backend wallet management needed
+- User owns the transaction (true Web3)
+- Decentralized experience
+- User controls gas fees
+- Transparent on-chain record
+- No backend wallet management needed
 
 **Cons:**
-- ❌ Requires Metamask or Web3 wallet
-- ❌ User must have gas tokens (tNXRA for testnet, NXRA for mainnet)
-- ❌ UX friction (Metamask popup)
-- ❌ User sees gas fees
+- Requires Metamask or Web3 wallet
+- User must have gas tokens (tNXRA for testnet, NXRA for mainnet)
+- UX friction (Metamask popup)
+- User sees gas fees
 
 ### Use Cases
 
@@ -438,19 +438,19 @@ return {
 ### Pros & Cons
 
 **Pros:**
-- ✅ No gas fees for users (seamless UX)
-- ✅ Cryptographically secure (EIP-712 signatures)
-- ✅ User maintains proof of authorship
-- ✅ Smart contract correctly attributes to user (via ERC2771)
-- ✅ No wallet needed for auth (just for signing)
-- ✅ Easy onboarding for non-Web3 users
+- No gas fees for users (seamless UX)
+- Cryptographically secure (EIP-712 signatures)
+- User maintains proof of authorship
+- Smart contract correctly attributes to user (via ERC2771)
+- No wallet needed for auth (just for signing)
+- Easy onboarding for non-Web3 users
 
 **Cons:**
-- ❌ Company/relayer pays all gas fees
-- ❌ Requires backend wallet management
-- ❌ Requires monitoring relayer balance
-- ❌ More complex flow (2 backend endpoints)
-- ❌ Still requires Metamask for signing
+- Company/relayer pays all gas fees
+- Requires backend wallet management
+- Requires monitoring relayer balance
+- More complex flow (2 backend endpoints)
+- Still requires Metamask for signing
 
 ### Use Cases
 
@@ -554,21 +554,21 @@ The extra `address author` parameter tells the contract who should receive the r
 ### Pros & Cons
 
 **Pros:**
-- ✅ No wallet required for users
-- ✅ Zero user interaction (seamless UX)
-- ✅ Perfect for onboarding flows
-- ✅ Ideal for promotional campaigns
-- ✅ Can reward users retroactively
+- No wallet required for users
+- Zero user interaction (seamless UX)
+- Perfect for onboarding flows
+- Ideal for promotional campaigns
+- Can reward users retroactively
 
 **Cons:**
-- ❌ Your backend pays ALL gas fees
-- ❌ User doesn't prove wallet ownership
-- ❌ Requires strong access control (API keys, authentication)
-- ❌ Higher centralization (backend has full control)
+- Your backend pays ALL gas fees
+- User doesn't prove wallet ownership
+- Requires strong access control (API keys, authentication)
+- Higher centralization (backend has full control)
 
 ### Security Considerations
 
-**⚠️ Critical Security Requirements:**
+**Critical Security Requirements:**
 
 1. **Strong API Authentication**: ALWAYS require API key authentication
 2. **Rate Limiting**: Prevent abuse and gas fee exhaustion
@@ -698,7 +698,7 @@ console.log(`Estimated cost per mint: ${ethers.formatEther(estimatedCost)} ETH`)
 - Rate limits by tier
 - Monthly mint allowances
 
-**Privacy Guarantee:** NEVER sees full prompt text ✅
+**Privacy Guarantee:** NEVER sees full prompt text
 
 ### 3. Smart Contracts (Blockchain)
 
@@ -744,7 +744,7 @@ console.log(`Estimated cost per mint: ${ethers.formatEther(estimatedCost)} ETH`)
 ```
 Step 1: User Prompt
 ├─▶ "What is machine learning?"
-└─▶ Stays in your backend ✅
+└─▶ Stays in your backend
 
 Step 2: Local Hashing
 ├─▶ hash = keccak256("What is machine learning?")
@@ -752,7 +752,7 @@ Step 2: Local Hashing
 
 Step 3: PZERO Authorization
 ├─▶ Send to PZERO: {hash: "0xabc123...", author, reward}
-├─▶ PZERO NEVER sees: "What is machine learning?" ✅
+├─▶ PZERO NEVER sees: "What is machine learning?"
 └─▶ Receive: {signature, nonce, expiresAt}
 
 Step 4: Transaction Submission
@@ -761,12 +761,12 @@ Step 4: Transaction Submission
 └─▶ Smart contract receives full prompt on-chain
 
 Step 5: Blockchain Verification
-├─▶ Verify PZERO signature is valid ✅
-├─▶ Verify authorization not expired ✅
-├─▶ Verify nonce not used (prevents replay) ✅
+├─▶ Verify PZERO signature is valid
+├─▶ Verify authorization not expired
+├─▶ Verify nonce not used (prevents replay)
 └─▶ Mint prompt + transfer Activity Points
 
-Result: ✅ User rewarded, prompt on-chain, PZERO never saw content
+Result: User rewarded, prompt on-chain, PZERO never saw content
 ```
 
 ## Reward Calculation
@@ -813,21 +813,21 @@ function calculateReward(prompt: string, userAddress: string): string {
 
 ### What This Boilerplate Provides
 
-✅ Privacy-first architecture (hash-only to PZERO)
-✅ Input validation and sanitization
-✅ Rate limiting (configurable per endpoint)
-✅ API key authentication
-✅ Transaction confirmation waiting
-✅ Error handling and retry logic
+Privacy-first architecture (hash-only to PZERO)
+Input validation and sanitization
+Rate limiting (configurable per endpoint)
+API key authentication
+Transaction confirmation waiting
+Error handling and retry logic
 
 ### What YOU Must Implement
 
-⚠️ **Reward calculation logic** - Determine fair reward amounts
-⚠️ **B2C authentication** - User authentication for your service
-⚠️ **Fraud prevention** - Detect/prevent reward gaming
-⚠️ **Gas fee management** - Monitor relayer wallet balance (meta-transaction mode)
-⚠️ **Monitoring & alerting** - Track usage, errors, costs
-⚠️ **Private key security** - Use HSM/KMS for production (relayer wallet)
+**Reward calculation logic** - Determine fair reward amounts
+**B2C authentication** - User authentication for your service
+**Fraud prevention** - Detect/prevent reward gaming
+**Gas fee management** - Monitor relayer wallet balance (meta-transaction mode)
+**Monitoring & alerting** - Track usage, errors, costs
+**Private key security** - Use HSM/KMS for production (relayer wallet)
 
 ### Smart Contract Security
 
@@ -1018,24 +1018,24 @@ curl http://localhost:3000/api/prompts/0xPromptHash
 
 ## Next Steps
 
-1. ✅ **Try the Examples:**
+1. **Try the Examples:**
    - Review `examples/basic-usage.ts` for backend integration
    - Open `examples/frontend/user-signed-transaction.html` for user-signed mode
    - Test `examples/frontend/metatx-gasless-minting.html` for meta-transactions
 
-2. ✅ **Customize Reward Logic:**
+2. **Customize Reward Logic:**
    - Implement your reward calculation algorithm
    - Consider quality, user tier, and other factors
 
-3. ✅ **Add Your Authentication:**
+3. **Add Your Authentication:**
    - Integrate with your existing auth system
    - Implement user verification for API access
 
-4. ✅ **Deploy to Testnet:**
+4. **Deploy to Testnet:**
    - Test thoroughly on Nexera testnet
    - Verify gas costs and performance
 
-5. ✅ **Launch to Production:**
+5. **Launch to Production:**
    - Deploy to Nexera mainnet
    - Monitor metrics and costs
    - Iterate based on user feedback

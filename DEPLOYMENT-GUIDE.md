@@ -1,10 +1,10 @@
 # Deployment Guide: Development vs Production
 
-## 🚨 Current Configuration Status
+## Current Configuration Status
 
 Your current setup is configured for **LOCAL DEVELOPMENT** with a self-hosted PZERO Gateway.
 
-## 📋 Configuration Comparison
+## Configuration Comparison
 
 | Configuration | Development (Current) | Production (Required) |
 |---------------|----------------------|----------------------|
@@ -16,7 +16,7 @@ Your current setup is configured for **LOCAL DEVELOPMENT** with a self-hosted PZ
 | **Auth Required** | `REQUIRE_AUTH_MINT=false` | `REQUIRE_AUTH_MINT=true` |
 | **Rate Limits** | Relaxed (100 req/15min) | Strict (1000 req/15min) |
 
-## 🔧 Development Setup (Current)
+## Development Setup (Current)
 
 ### Docker Network Configuration
 
@@ -24,7 +24,7 @@ Your current setup is configured for **LOCAL DEVELOPMENT** with a self-hosted PZ
 # docker-compose.yml (DEVELOPMENT)
 networks:
   - prompt-mining-network
-  - prompt-mining-api-gateway_pzero-network  # ⚠️ LOCAL DEV ONLY!
+  - prompt-mining-api-gateway_pzero-network  # LOCAL DEV ONLY!
 ```
 
 ### Environment Variables
@@ -47,7 +47,7 @@ REQUIRE_AUTH_MINT=false
 - Production servers don't have `pzero-gateway-app` container running
 - The external network `prompt-mining-api-gateway_pzero-network` doesn't exist
 
-## 🏭 Production Deployment
+## Production Deployment
 
 ### Option 1: Use Official PZERO Gateway (Recommended)
 
@@ -134,7 +134,7 @@ services:
       # Gateway is accessed via HTTPS URL
 ```
 
-## 🔐 Security Checklist for Production
+## Security Checklist for Production
 
 - [ ] Change `NODE_ENV=production`
 - [ ] Use real PZERO Gateway URL (`https://gateway.pzero.io/v1`)
@@ -150,7 +150,7 @@ services:
 - [ ] Configure monitoring and logging
 - [ ] Use HTTPS for all connections
 
-## 🚀 Quick Deployment Commands
+## Quick Deployment Commands
 
 ### Development (Local)
 
@@ -172,7 +172,7 @@ nano .env.production
 docker-compose -f docker-compose.prod.yml --env-file .env.production up -d --build
 ```
 
-## 🔍 Verification
+## Verification
 
 ### Development
 
@@ -194,23 +194,23 @@ curl https://gateway.pzero.io/v1/health
 curl https://your-api.yourdomain.com/health
 ```
 
-## 📊 Impact Summary
+## Impact Summary
 
 ### What Changed in Your Current Setup (Development):
 
-1. ✅ Added external Docker network to connect to local PZERO Gateway
-2. ✅ Changed `PZERO_API_URL` from `localhost` to Docker container name
-3. ✅ This works perfectly for **local development**
+1. Added external Docker network to connect to local PZERO Gateway
+2. Changed `PZERO_API_URL` from `localhost` to Docker container name
+3. This works perfectly for **local development**
 
 ### What You Must Change for Production:
 
-1. ❌ Remove development Docker network reference
-2. ❌ Change `PZERO_API_URL` to production gateway
-3. ❌ Use production API credentials
-4. ❌ Use mainnet blockchain configuration
-5. ❌ Enable all security features
+1. Remove development Docker network reference
+2. Change `PZERO_API_URL` to production gateway
+3. Use production API credentials
+4. Use mainnet blockchain configuration
+5. Enable all security features
 
-## 🆘 Troubleshooting
+## Troubleshooting
 
 ### "PZERO_UNAVAILABLE" Error
 
@@ -229,7 +229,7 @@ curl https://your-api.yourdomain.com/health
 - For development: Register in your local gateway database
 - For production: Get real credentials from https://gateway.pzero.io/register
 
-## 📚 Related Documentation
+## Related Documentation
 
 - [Docker Deployment Guide](docs/DOCKER.md)
 - [Quick Start](DOCKER-QUICK-START.md)
