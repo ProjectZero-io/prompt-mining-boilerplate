@@ -76,9 +76,9 @@ Pass your npm token as a build argument:
 # Set your NPM token
 export NPM_TOKEN=npm_yourtokenhere
 
-# Build the image
-docker build \
-  --build-arg NPM_TOKEN=$NPM_TOKEN \
+# Build the image using Docker BuildKit secrets (secure method)
+docker buildx build \
+  --secret id=npm,env=NPM_TOKEN \
   -t prompt-mining-api:latest \
   .
 ```
@@ -88,7 +88,7 @@ docker build \
 If you don't have access to the private package, the build will fail:
 
 ```bash
-docker build -t prompt-mining-api:latest .
+docker buildx build -t prompt-mining-api:latest .
 # Error: Unable to authenticate with npm registry
 ```
 

@@ -13,7 +13,7 @@ DOCKER_PUSH_FLAG := $(if $(filter true,$(PUSH)),--push,)
 docker-build:
 	docker buildx build \
 		--platform $(DOCKER_PLATFORM) \
-		--secret id=SENTRY_AUTH_TOKEN,env=SENTRY_AUTH_TOKEN \
+		--secret id=npm,env=NPM_TOKEN \
 		-t $(DOCKER_TAG_LATEST) \
 		-t $(DOCKER_TAG_SHA) \
 		-f ./Dockerfile \
