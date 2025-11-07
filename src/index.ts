@@ -29,7 +29,7 @@ try {
   console.log('Blockchain initialized successfully');
 } catch (error: any) {
   console.error('Blockchain initialization failed:', error.message);
-  console.error('\nPlease check your RPC_URL and ensure blockchain is accessible.');
+  console.error('\nPlease check your MINING_RPC_URL and ensure blockchain is accessible.');
   process.exit(1);
 }
 

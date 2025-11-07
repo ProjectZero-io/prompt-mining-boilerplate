@@ -124,18 +124,18 @@ docker run -d \
 docker run -d \
   --name prompt-mining-api \
   -p 3000:3000 \
-  -e NODE_ENV=production \
-  -e PORT=3000 \
-  -e RPC_URL=https://rpc.nexera.network \
-  -e CHAIN_ID=7208 \
-  -e PZERO_API_KEY=pzero_live_xxxxx \
-  -e PZERO_CLIENT_ID=your-client-id \
-  -e PZERO_API_URL=https://api.pzero.io/v1 \
-  -e PRIVATE_KEY=0xYourPrivateKey \
-  -e PROMPT_MINER_ADDRESS=0x... \
-  -e ACTIVITY_POINTS_ADDRESS=0x... \
-  -e PROMPT_DO_ADDRESS=0x... \
-  -e DATA_INDEX_ADDRESS=0x... \
+  -e MINING_NODE_ENV=production \
+  -e MINING_PORT=3000 \
+  -e MINING_RPC_URL=https://rpc.nexera.network \
+  -e MINING_CHAIN_ID=7208 \
+  -e MINING_PZERO_API_KEY=pzero_live_xxxxx \
+  -e MINING_PZERO_CLIENT_ID=your-client-id \
+  -e MINING_PZERO_API_URL=https://api.pzero.io/v1 \
+  -e MINING_PRIVATE_KEY=0xYourPrivateKey \
+  -e MINING_PROMPT_MINER_ADDRESS=0x... \
+  -e MINING_ACTIVITY_POINTS_ADDRESS=0x... \
+  -e MINING_PROMPT_DO_ADDRESS=0x... \
+  -e MINING_DATA_INDEX_ADDRESS=0x... \
   --restart unless-stopped \
   prompt-mining-api:latest
 ```
@@ -236,33 +236,33 @@ Create a production `.env.production` file (or use `.env.production.example` as 
 
 ```env
 # Production Environment
-NODE_ENV=production
-PORT=3000
+MINING_NODE_ENV=production
+MINING_PORT=3000
 
 # Blockchain (Mainnet)
-RPC_URL=https://rpc.nexera.network
-CHAIN_ID=7208
+MINING_RPC_URL=https://rpc.nexera.network
+MINING_CHAIN_ID=7208
 
 # PZERO Production - USE REAL GATEWAY
-PZERO_API_URL=https://gateway.pzero.io/v1
-PZERO_API_KEY=pzero_prod_xxxxxxxxxxxxx
-PZERO_CLIENT_ID=your-production-company-id
-PZERO_AUTH_TIMEOUT_MS=10000
-PZERO_RETRY_ATTEMPTS=5
+MINING_PZERO_API_URL=https://gateway.pzero.io/v1
+MINING_PZERO_API_KEY=pzero_prod_xxxxxxxxxxxxx
+MINING_PZERO_CLIENT_ID=your-production-company-id
+MINING_PZERO_AUTH_TIMEOUT_MS=10000
+MINING_PZERO_RETRY_ATTEMPTS=5
 
 # Smart Contracts (Production)
-PROMPT_MINER_ADDRESS=0x...
-ACTIVITY_POINTS_ADDRESS=0x...
-PROMPT_DO_ADDRESS=0x...
-DATA_INDEX_ADDRESS=0x...
+MINING_PROMPT_MINER_ADDRESS=0x...
+MINING_ACTIVITY_POINTS_ADDRESS=0x...
+MINING_PROMPT_DO_ADDRESS=0x...
+MINING_DATA_INDEX_ADDRESS=0x...
 
 # Wallet (Use secure key management!)
-PRIVATE_KEY=0xYourProductionPrivateKey
+MINING_PRIVATE_KEY=0xYourProductionPrivateKey
 
 # Security
-API_KEYS=prod-key-1,prod-key-2
-REQUIRE_AUTH=true
-REQUIRE_AUTH_MINT=true
+MINING_API_KEYS=prod-key-1,prod-key-2
+MINING_REQUIRE_AUTH=true
+MINING_REQUIRE_AUTH_MINT=true
 ```
 
 ### 2. Use Production Docker Compose
@@ -282,8 +282,8 @@ networks:
 ```
 
 # Rate Limiting
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
+MINING_RATE_LIMIT_WINDOW_MS=900000
+MINING_RATE_LIMIT_MAX_REQUESTS=100
 
 # Logging
 LOG_LEVEL=info
@@ -410,7 +410,7 @@ docker exec prompt-mining-api env | grep PORT
 **Solution**:
 ```bash
 # Test RPC from inside container
-docker exec prompt-mining-api wget -qO- $RPC_URL
+docker exec prompt-mining-api wget -qO- ${MINING_RPC_URL}
 
 # Verify RPC_URL environment variable
 docker exec prompt-mining-api env | grep RPC_URL

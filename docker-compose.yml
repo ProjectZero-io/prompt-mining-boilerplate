@@ -14,7 +14,7 @@ services:
     env_file:
       - .env
     environment:
-      - NODE_ENV=production
+      - MINING_NODE_ENV=production
     networks:
       - prompt-mining-network
       - prompt-mining-api-gateway_pzero-network
