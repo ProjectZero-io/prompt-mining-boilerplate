@@ -5,8 +5,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      args:
-        - NPM_TOKEN=${NPM_TOKEN}
+      secrets:
+        - npm_token
     container_name: prompt-mining-api
     restart: unless-stopped
     ports:
@@ -14,7 +14,7 @@ services:
     env_file:
       - .env.production
     environment:
-      - NODE_ENV=production
+      - MINING_NODE_ENV=production
     networks:
       - prompt-mining-network
     healthcheck:
@@ -27,3 +27,7 @@ services:
 networks:
   prompt-mining-network:
     driver: bridge
+
+secrets:
+  npm_token:
+    environment: NPM_TOKEN

@@ -8,7 +8,7 @@ describe('Health Check', () => {
     expect(true).toBe(true);
   });
 
-  it('should have NODE_ENV defined', () => {
-    expect(process.env.NODE_ENV).toBeDefined();
+  it('should have MINING_NODE_ENV || NODE_ENV defined', () => {
+    expect(process.env.MINING_NODE_ENV || process.env.NODE_ENV).toBeDefined();
   });
 });

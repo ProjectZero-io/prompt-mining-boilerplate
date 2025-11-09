@@ -304,7 +304,7 @@ When integrating with PZERO Gateway:
 
 ### Security Best Practices
 
-- Store `PZERO_API_KEY` securely (environment variable, secrets manager)
+- Store `MINING_PZERO_API_KEY` securely (environment variable, secrets manager)
 - Rotate API keys regularly
 - Monitor for unauthorized usage
 - Use test keys in development
