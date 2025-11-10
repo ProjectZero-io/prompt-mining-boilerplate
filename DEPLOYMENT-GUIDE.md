@@ -13,7 +13,7 @@ Your current setup is configured for **LOCAL DEVELOPMENT** with a self-hosted PZ
 | **API Key** | `pzero_test_...` | `pzero_prod_...` |
 | **Blockchain** | Testnet (Chain ID: 72080) | Mainnet (Chain ID: 7208) |
 | **RPC URL** | `https://rpc.testnet.nexera.network` | `https://rpc.nexera.network` |
-| **Auth Required** | `MINING_REQUIRE_AUTH_MINT=false` | `MINING_REQUIRE_AUTH_MINT=true` |
+| **Auth Required** | `PM_REQUIRE_AUTH_MINT=false` | `PM_REQUIRE_AUTH_MINT=true` |
 | **Rate Limits** | Relaxed (100 req/15min) | Strict (1000 req/15min) |
 
 ## Development Setup (Current)
@@ -31,12 +31,12 @@ networks:
 
 ```env
 # .env (DEVELOPMENT)
-MINING_NODE_ENV=development
-MINING_PZERO_API_URL=http://pzero-gateway-app:3001/v1
-MINING_PZERO_API_KEY=pzero_test_49579c2baf5642fe2b3c2501287352c1
-MINING_CHAIN_ID=72080
-MINING_RPC_URL=https://rpc.testnet.nexera.network
-MINING_REQUIRE_AUTH_MINT=false
+PM_NODE_ENV=development
+PM_PZERO_API_URL=http://pzero-gateway-app:3001/v1
+PM_PZERO_API_KEY=pzero_test_49579c2baf5642fe2b3c2501287352c1
+PM_CHAIN_ID=72080
+PM_RPC_URL=https://rpc.testnet.nexera.network
+PM_REQUIRE_AUTH_MINT=false
 ```
 
 **Why this works locally:**
@@ -55,30 +55,30 @@ MINING_REQUIRE_AUTH_MINT=false
 
 ```env
 # Production Configuration
-MINING_NODE_ENV=production
-MINING_PORT=3000
+PM_NODE_ENV=production
+PM_PORT=3000
 
 # PZERO Production - Use official gateway
-MINING_PZERO_API_URL=https://gateway.pzero.io/v1
-MINING_PZERO_API_KEY=pzero_prod_your_real_key_here
-MINING_PZERO_CLIENT_ID=your-production-company-id
-MINING_PZERO_AUTH_TIMEOUT_MS=10000
-MINING_PZERO_RETRY_ATTEMPTS=5
+PM_PZERO_API_URL=https://gateway.pzero.io/v1
+PM_PZERO_API_KEY=pzero_prod_your_real_key_here
+PM_PZERO_CLIENT_ID=your-production-company-id
+PM_PZERO_AUTH_TIMEOUT_MS=10000
+PM_PZERO_RETRY_ATTEMPTS=5
 
 # Blockchain Mainnet
-MINING_CHAIN_ID=7208
-MINING_RPC_URL=https://rpc.nexera.network
+PM_CHAIN_ID=7208
+PM_RPC_URL=https://rpc.nexera.network
 
 # Production Contract Addresses
-MINING_PROMPT_MINER_ADDRESS=0xProductionAddress
-MINING_ACTIVITY_POINTS_ADDRESS=0xProductionAddress
-MINING_PROMPT_DO_ADDRESS=0xProductionAddress
-MINING_DATA_INDEX_ADDRESS=0xProductionAddress
+PM_PROMPT_MINER_ADDRESS=0xProductionAddress
+PM_ACTIVITY_POINTS_ADDRESS=0xProductionAddress
+PM_PROMPT_DO_ADDRESS=0xProductionAddress
+PM_DATA_INDEX_ADDRESS=0xProductionAddress
 
 # Security
-MINING_REQUIRE_AUTH=true
-MINING_REQUIRE_AUTH_MINT=true
-MINING_API_KEYS=strong-prod-key-1,strong-prod-key-2
+PM_REQUIRE_AUTH=true
+PM_REQUIRE_AUTH_MINT=true
+PM_API_KEYS=strong-prod-key-1,strong-prod-key-2
 ```
 
 **Step 2: Use production docker-compose**
@@ -117,9 +117,9 @@ If you're deploying your own PZERO Gateway in production:
 
 ```env
 # Self-hosted production gateway
-MINING_PZERO_API_URL=https://your-pzero-gateway.yourdomain.com/v1
-MINING_PZERO_API_KEY=your_custom_api_key
-MINING_PZERO_CLIENT_ID=your-company-id
+PM_PZERO_API_URL=https://your-pzero-gateway.yourdomain.com/v1
+PM_PZERO_API_KEY=your_custom_api_key
+PM_PZERO_CLIENT_ID=your-company-id
 ```
 
 **Step 3: Update `docker-compose.yml`**
@@ -136,11 +136,11 @@ services:
 
 ## Security Checklist for Production
 
-- [ ] Change `MINING_NODE_ENV=production`
+- [ ] Change `PM_NODE_ENV=production`
 - [ ] Use real PZERO Gateway URL (`https://gateway.pzero.io/v1`)
 - [ ] Use production API keys (not test keys)
-- [ ] Enable authentication (`MINING_REQUIRE_AUTH=true`)
-- [ ] Enable mint authentication (`MINING_REQUIRE_AUTH_MINT=true`)
+- [ ] Enable authentication (`PM_REQUIRE_AUTH=true`)
+- [ ] Enable mint authentication (`PM_REQUIRE_AUTH_MINT=true`)
 - [ ] Use strong API keys for your users
 - [ ] Use mainnet contract addresses
 - [ ] Use mainnet RPC URL
@@ -199,13 +199,13 @@ curl https://your-api.yourdomain.com/health
 ### What Changed in Your Current Setup (Development):
 
 1. Added external Docker network to connect to local PZERO Gateway
-2. Changed `MINING_PZERO_API_URL` from `localhost` to Docker container name
+2. Changed `PM_PZERO_API_URL` from `localhost` to Docker container name
 3. This works perfectly for **local development**
 
 ### What You Must Change for Production:
 
 1. Remove development Docker network reference
-2. Change `MINING_PZERO_API_URL` to production gateway
+2. Change `PM_PZERO_API_URL` to production gateway
 3. Use production API credentials
 4. Use mainnet blockchain configuration
 5. Enable all security features

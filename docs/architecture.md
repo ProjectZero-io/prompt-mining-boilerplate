@@ -579,14 +579,14 @@ The extra `address author` parameter tells the contract who should receive the r
 **Example `.env` configuration:**
 ```env
 # Require authentication for backend-signed mints
-MINING_REQUIRE_AUTH_MINT=true
+PM_REQUIRE_AUTH_MINT=true
 
 # Use strong API keys
-MINING_API_KEYS=secure-key-1,secure-key-2
+PM_API_KEYS=secure-key-1,secure-key-2
 
 # Rate limiting
-MINING_RATE_LIMIT_MAX_REQUESTS=100
-MINING_RATE_LIMIT_WINDOW_MS=900000  # 15 minutes
+PM_RATE_LIMIT_MAX_REQUESTS=100
+PM_RATE_LIMIT_WINDOW_MS=900000  # 15 minutes
 ```
 
 ### Use Cases
@@ -878,20 +878,20 @@ cp .env.example .env
 Edit `.env` with your values:
 ```env
 # PZERO B2B Credentials
-MINING_PZERO_API_KEY=your-api-key
-MINING_PZERO_CLIENT_ID=your-client-id
+PM_PZERO_API_KEY=your-api-key
+PM_PZERO_CLIENT_ID=your-client-id
 
 # Blockchain Configuration
-MINING_RPC_URL=https://rpc.testnet.nexera.network
-MINING_CHAIN_ID=72080  # Nexera testnet
+PM_RPC_URL=https://rpc.testnet.nexera.network
+PM_CHAIN_ID=72080  # Nexera testnet
 
 # Contract Addresses
-MINING_PROMPT_MINER_ADDRESS=0x...
-MINING_ACTIVITY_POINTS_ADDRESS=0x...
-MINING_PROMPT_DO_ADDRESS=0x...
+PM_PROMPT_MINER_ADDRESS=0x...
+PM_ACTIVITY_POINTS_ADDRESS=0x...
+PM_PROMPT_DO_ADDRESS=0x...
 
 # Optional: For meta-transaction relayer mode
-MINING_PRIVATE_KEY=0x...  # Relayer wallet private key
+PM_PRIVATE_KEY=0x...  # Relayer wallet private key
 ```
 
 **3. Implement Reward Logic:**

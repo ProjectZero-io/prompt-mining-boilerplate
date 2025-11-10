@@ -36,16 +36,16 @@ async function runTests() {
   console.log('1. Checking Environment Variables...\n');
 
   const requiredVars = [
-    'MINING_NODE_ENV',
-    'MINING_PORT',
-    'MINING_RPC_URL',
-    'MINING_CHAIN_ID',
-    'MINING_PROMPT_MINER_ADDRESS',
-    'MINING_ACTIVITY_POINTS_ADDRESS',
-    'MINING_PRIVATE_KEY',
-    'MINING_PZERO_API_KEY',
-    'MINING_PZERO_CLIENT_ID',
-    'MINING_PZERO_API_URL',
+    'PM_NODE_ENV',
+    'PM_PORT',
+    'PM_RPC_URL',
+    'PM_CHAIN_ID',
+    'PM_PROMPT_MINER_ADDRESS',
+    'PM_ACTIVITY_POINTS_ADDRESS',
+    'PM_PRIVATE_KEY',
+    'PM_PZERO_API_KEY',
+    'PM_PZERO_CLIENT_ID',
+    'PM_PZERO_API_URL',
   ];
 
   for (const varName of requiredVars) {
@@ -60,9 +60,9 @@ async function runTests() {
   console.log('\n2. Validating Configuration Values...\n');
 
   // Test 2: Validate PZERO API key format
-  const pzeroKey = process.env.MINING_PZERO_API_KEY || '';
+  const pzeroKey = process.env.PM_PZERO_API_KEY || '';
   test(
-    '  MINING_PZERO_API_KEY format',
+    '  PM_PZERO_API_KEY format',
     pzeroKey.startsWith('pzero_'),
     pzeroKey.startsWith('pzero_')
       ? 'Valid (starts with pzero_)'
@@ -72,17 +72,17 @@ async function runTests() {
   // Test 3: Validate PZERO API URL
   let pzeroUrlValid = false;
   try {
-    new URL(process.env.MINING_PZERO_API_URL || '');
+    new URL(process.env.PM_PZERO_API_URL || '');
     pzeroUrlValid = true;
-    test('  MINING_PZERO_API_URL format', true, 'Valid URL');
+    test('  PM_PZERO_API_URL format', true, 'Valid URL');
   } catch (error) {
-    test('  MINING_PZERO_API_URL format', false, 'Invalid URL format');
+    test('  PM_PZERO_API_URL format', false, 'Invalid URL format');
   }
 
   // Test 4: Validate Ethereum addresses
   const addresses = {
-    MINING_PROMPT_MINER_ADDRESS: process.env.MINING_PROMPT_MINER_ADDRESS,
-    MINING_ACTIVITY_POINTS_ADDRESS: process.env.MINING_ACTIVITY_POINTS_ADDRESS,
+    PM_PROMPT_MINER_ADDRESS: process.env.PM_PROMPT_MINER_ADDRESS,
+    PM_ACTIVITY_POINTS_ADDRESS: process.env.PM_ACTIVITY_POINTS_ADDRESS,
   };
 
   for (const [name, address] of Object.entries(addresses)) {
@@ -97,10 +97,10 @@ async function runTests() {
   }
 
   // Test 5: Validate private key format
-  const privateKey = process.env.MINING_PRIVATE_KEY || '';
+  const privateKey = process.env.PM_PRIVATE_KEY || '';
   const pkValid = privateKey.startsWith('0x') && privateKey.length === 66;
   test(
-    '  MINING_PRIVATE_KEY format',
+    '  PM_PRIVATE_KEY format',
     pkValid,
     pkValid
       ? 'Valid (0x + 64 hex chars)'
@@ -108,10 +108,10 @@ async function runTests() {
   );
 
   // Test 6: Validate chain ID is a number
-  const chainId = process.env.MINING_CHAIN_ID || '';
+  const chainId = process.env.PM_CHAIN_ID || '';
   const chainIdNum = parseInt(chainId, 10);
   test(
-    '  MINING_CHAIN_ID',
+    '  PM_CHAIN_ID',
     !isNaN(chainIdNum),
     !isNaN(chainIdNum) ? `Valid (${chainIdNum})` : 'Invalid! Must be a number'
   );
@@ -119,9 +119,9 @@ async function runTests() {
   console.log('\n3. Testing External Connections...\n');
 
   // Test 7: Test RPC connection
-  if (process.env.MINING_RPC_URL) {
+  if (process.env.PM_RPC_URL) {
     try {
-      const provider = new ethers.JsonRpcProvider(process.env.MINING_RPC_URL);
+      const provider = new ethers.JsonRpcProvider(process.env.PM_RPC_URL);
       const network = await provider.getNetwork();
       const blockNumber = await provider.getBlockNumber();
       test(
@@ -139,15 +139,15 @@ async function runTests() {
   }
 
   // Test 8: Test PZERO API connection
-  if (pzeroUrlValid && process.env.MINING_PZERO_API_URL) {
+  if (pzeroUrlValid && process.env.PM_PZERO_API_URL) {
     try {
       const response = await axios.get(
-        `${process.env.MINING_PZERO_API_URL}/health`,
+        `${process.env.PM_PZERO_API_URL}/health`,
         {
           timeout: 5000,
           headers: {
-            'x-pzero-api-key': process.env.MINING_PZERO_API_KEY,
-            'x-pzero-client-id': process.env.MINING_PZERO_CLIENT_ID,
+            'x-pzero-api-key': process.env.PM_PZERO_API_KEY,
+            'x-pzero-client-id': process.env.PM_PZERO_CLIENT_ID,
           },
         }
       );
@@ -180,10 +180,10 @@ async function runTests() {
   }
 
   // Test 9: Test wallet balance (optional warning)
-  if (process.env.MINING_RPC_URL && process.env.MINING_PRIVATE_KEY && pkValid) {
+  if (process.env.PM_RPC_URL && process.env.PM_PRIVATE_KEY && pkValid) {
     try {
-      const provider = new ethers.JsonRpcProvider(process.env.MINING_RPC_URL);
-      const wallet = new ethers.Wallet(process.env.MINING_PRIVATE_KEY, provider);
+      const provider = new ethers.JsonRpcProvider(process.env.PM_RPC_URL);
+      const wallet = new ethers.Wallet(process.env.PM_PRIVATE_KEY, provider);
       const balance = await provider.getBalance(wallet.address);
       const balanceEth = ethers.formatEther(balance);
 

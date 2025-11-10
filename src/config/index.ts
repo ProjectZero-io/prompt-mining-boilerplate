@@ -113,48 +113,48 @@ const parseApiKeys = (value: string | undefined): string[] => {
  * const rpcUrl = config.blockchain.rpcUrl;
  */
 export const config: Config = {
-  env: process.env.MINING_NODE_ENV || 'development',
+  env: process.env.PM_NODE_ENV || 'development',
 
   server: {
-    port: parseInt(process.env.MINING_PORT || '3000', 10),
+    port: parseInt(process.env.PM_PORT || '3000', 10),
   },
 
   blockchain: {
-    rpcUrl: requireEnv('MINING_RPC_URL', process.env.MINING_RPC_URL),
-    chainId: requireEnv('MINING_CHAIN_ID', process.env.MINING_CHAIN_ID),
-    privateKey: requireEnv('MINING_PRIVATE_KEY', process.env.MINING_PRIVATE_KEY),
+    rpcUrl: requireEnv('PM_RPC_URL', process.env.PM_RPC_URL),
+    chainId: requireEnv('PM_CHAIN_ID', process.env.PM_CHAIN_ID),
+    privateKey: requireEnv('PM_PRIVATE_KEY', process.env.PM_PRIVATE_KEY),
   },
 
   contracts: {
     promptMiner: validateAddress(
-      'MINING_PROMPT_MINER_ADDRESS',
-      requireEnv('MINING_PROMPT_MINER_ADDRESS', process.env.MINING_PROMPT_MINER_ADDRESS)
+      'PM_PROMPT_MINER_ADDRESS',
+      requireEnv('PM_PROMPT_MINER_ADDRESS', process.env.PM_PROMPT_MINER_ADDRESS)
     ),
     activityPoints: validateAddress(
-      'MINING_ACTIVITY_POINTS_ADDRESS',
-      requireEnv('MINING_ACTIVITY_POINTS_ADDRESS', process.env.MINING_ACTIVITY_POINTS_ADDRESS)
+      'PM_ACTIVITY_POINTS_ADDRESS',
+      requireEnv('PM_ACTIVITY_POINTS_ADDRESS', process.env.PM_ACTIVITY_POINTS_ADDRESS)
     ),
   },
 
   pzero: {
-    apiKey: requireEnv('MINING_PZERO_API_KEY', process.env.MINING_PZERO_API_KEY),
-    clientId: requireEnv('MINING_PZERO_CLIENT_ID', process.env.MINING_PZERO_CLIENT_ID),
-    apiUrl: requireEnv('MINING_PZERO_API_URL', process.env.MINING_PZERO_API_URL),
-    authTimeoutMs: parseInt(process.env.MINING_PZERO_AUTH_TIMEOUT_MS || '5000', 10),
-    retryAttempts: parseInt(process.env.MINING_PZERO_RETRY_ATTEMPTS || '3', 10),
+    apiKey: requireEnv('PM_PZERO_API_KEY', process.env.PM_PZERO_API_KEY),
+    clientId: requireEnv('PM_PZERO_CLIENT_ID', process.env.PM_PZERO_CLIENT_ID),
+    apiUrl: requireEnv('PM_PZERO_API_URL', process.env.PM_PZERO_API_URL),
+    authTimeoutMs: parseInt(process.env.PM_PZERO_AUTH_TIMEOUT_MS || '5000', 10),
+    retryAttempts: parseInt(process.env.PM_PZERO_RETRY_ATTEMPTS || '3', 10),
   },
 
   auth: {
-    validApiKeys: parseApiKeys(process.env.MINING_API_KEYS),
-    requireAuth: parseBoolean(process.env.MINING_REQUIRE_AUTH, true),
-    requireAuthMint: parseBoolean(process.env.MINING_REQUIRE_AUTH_MINT, true),
-    requireAuthRead: parseBoolean(process.env.MINING_REQUIRE_AUTH_READ, false),
+    validApiKeys: parseApiKeys(process.env.PM_API_KEYS),
+    requireAuth: parseBoolean(process.env.PM_REQUIRE_AUTH, true),
+    requireAuthMint: parseBoolean(process.env.PM_REQUIRE_AUTH_MINT, true),
+    requireAuthRead: parseBoolean(process.env.PM_REQUIRE_AUTH_READ, false),
   },
 
   rateLimit: {
-    windowMs: parseInt(process.env.MINING_RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 min default
-    maxRequests: parseInt(process.env.MINING_RATE_LIMIT_MAX_REQUESTS || '100', 10),
-    skipAuthenticatedUsers: parseBoolean(process.env.MINING_RATE_LIMIT_SKIP_AUTHENTICATED, false),
+    windowMs: parseInt(process.env.PM_RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 min default
+    maxRequests: parseInt(process.env.PM_RATE_LIMIT_MAX_REQUESTS || '100', 10),
+    skipAuthenticatedUsers: parseBoolean(process.env.PM_RATE_LIMIT_SKIP_AUTHENTICATED, false),
   },
 };
 
@@ -178,33 +178,33 @@ export const validateConfig = (): void => {
   try {
     new URL(config.pzero.apiUrl);
   } catch (error) {
-    throw new Error('MINING_PZERO_API_URL must be a valid URL');
+    throw new Error('PM_PZERO_API_URL must be a valid URL');
   }
 
   // Validate private key format
   if (!config.blockchain.privateKey.startsWith('0x')) {
-    throw new Error('MINING_PRIVATE_KEY must start with 0x');
+    throw new Error('PM_PRIVATE_KEY must start with 0x');
   }
 
   if (config.blockchain.privateKey.length !== 66) {
-    throw new Error('MINING_PRIVATE_KEY must be 66 characters (including 0x prefix)');
+    throw new Error('PM_PRIVATE_KEY must be 66 characters (including 0x prefix)');
   }
 
   // Validate chain ID is a number
   const chainIdNum = parseInt(config.blockchain.chainId, 10);
   if (isNaN(chainIdNum)) {
-    throw new Error('MINING_CHAIN_ID must be a valid number');
+    throw new Error('PM_CHAIN_ID must be a valid number');
   }
 
   // Validate port is in valid range
   if (config.server.port < 1 || config.server.port > 65535) {
-    throw new Error('MINING_PORT must be between 1 and 65535');
+    throw new Error('PM_PORT must be between 1 and 65535');
   }
 
   // Validate API keys are configured if authentication is required
   if (config.auth.requireAuth && config.auth.validApiKeys.length === 0) {
     throw new Error(
-      'MINING_REQUIRE_AUTH is true but no MINING_API_KEYS are configured. Either disable authentication or provide valid API keys.'
+      'PM_REQUIRE_AUTH is true but no PM_API_KEYS are configured. Either disable authentication or provide valid API keys.'
     );
   }
 
