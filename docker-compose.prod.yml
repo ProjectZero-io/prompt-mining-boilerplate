@@ -14,7 +14,7 @@ services:
     env_file:
       - .env.production
     environment:
-      - MINING_NODE_ENV=production
+      - PM_NODE_ENV=production
     networks:
       - prompt-mining-network
     healthcheck:

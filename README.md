@@ -62,9 +62,9 @@ To use this boilerplate, you need to register for PZERO API credentials:
  **[Register at gateway.pzero.io/register](https://gateway.pzero.io/register)**
 
 You'll receive:
-- `MINING_PZERO_API_KEY` - Your API authentication key
-- `MINING_PZERO_CLIENT_ID` - Your unique client identifier
-- `MINING_PZERO_API_URL` - The PZERO Gateway endpoint
+- `PM_PZERO_API_KEY` - Your API authentication key
+- `PM_PZERO_CLIENT_ID` - Your unique client identifier
+- `PM_PZERO_API_URL` - The PZERO Gateway endpoint
 
 ## Table of Contents
 
@@ -118,31 +118,31 @@ Edit `.env` and configure the following **required** variables:
 
 **PZERO B2B Integration** (get these from [gateway.pzero.io/register](https://gateway.pzero.io/register)):
 ```env
-MINING_PZERO_API_KEY=pzero_live_xxxxxxxxxxxxx
-MINING_PZERO_CLIENT_ID=your-company-id
-MINING_PZERO_API_URL=https://api.pzero.io/v1
+PM_PZERO_API_KEY=pzero_live_xxxxxxxxxxxxx
+PM_PZERO_CLIENT_ID=your-company-id
+PM_PZERO_API_URL=https://api.pzero.io/v1
 ```
 
 **Blockchain Configuration**:
 ```env
-MINING_RPC_URL=https://rpc.testnet.nexera.network
-MINING_CHAIN_ID=72080
-MINING_PRIVATE_KEY=0xYourPrivateKeyHere
+PM_RPC_URL=https://rpc.testnet.nexera.network
+PM_CHAIN_ID=72080
+PM_PRIVATE_KEY=0xYourPrivateKeyHere
 ```
 
 **Smart Contract Addresses** (provided by ProjectZero):
 ```env
-MINING_PROMPT_MINER_ADDRESS=0x...
-MINING_ACTIVITY_POINTS_ADDRESS=0x...
-MINING_PROMPT_DO_ADDRESS=0x...
-MINING_DATA_INDEX_ADDRESS=0x...
+PM_PROMPT_MINER_ADDRESS=0x...
+PM_ACTIVITY_POINTS_ADDRESS=0x...
+PM_PROMPT_DO_ADDRESS=0x...
+PM_DATA_INDEX_ADDRESS=0x...
 ```
 
 **API Security** (Front-end keys to boilerplate):
 ```env
-MINING_API_KEYS=your-api-key-here,another-key-here
-MINING_REQUIRE_AUTH=true
-MINING_SPONSORED_TRANSACTIONS=false
+PM_API_KEYS=your-api-key-here,another-key-here
+PM_REQUIRE_AUTH=true
+PM_SPONSORED_TRANSACTIONS=false
 ```
 
 ### 3. Start the Server
@@ -194,9 +194,9 @@ Create a `.env` file in the root directory with the following variables:
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
-| `MINING_PZERO_API_KEY` | PZERO API authentication key | **Yes** | `pzero_live_xxxxxxxxxxxxx` |
-| `MINING_PZERO_CLIENT_ID` | Your company's PZERO client ID | **Yes** | `your-company-id` |
-| `MINING_PZERO_API_URL` | PZERO Gateway API endpoint | **Yes** | `https://api.pzero.io/v1` |
+| `PM_PZERO_API_KEY` | PZERO API authentication key | **Yes** | `pzero_live_xxxxxxxxxxxxx` |
+| `PM_PZERO_CLIENT_ID` | Your company's PZERO client ID | **Yes** | `your-company-id` |
+| `PM_PZERO_API_URL` | PZERO Gateway API endpoint | **Yes** | `https://api.pzero.io/v1` |
 
 Get these credentials at **[gateway.pzero.io/register](https://gateway.pzero.io/register)**
 
@@ -204,36 +204,36 @@ Get these credentials at **[gateway.pzero.io/register](https://gateway.pzero.io/
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
-| `MINING_NODE_ENV` | Environment mode | **Yes** | `development`, `production` |
-| `MINING_PORT` | Server port | **Yes** | `3000` |
-| `MINING_RPC_URL` | Blockchain RPC endpoint | **Yes** | `https://rpc.nexera.network` |
-| `MINING_CHAIN_ID` | Blockchain chain ID | **Yes** | `7208` (mainnet), `72080` (testnet) |
-| `MINING_PROMPT_MINER_ADDRESS` | PromptMiner contract address | **Yes** | `0x...` |
-| `MINING_ACTIVITY_POINTS_ADDRESS` | ActivityPoints contract address | **Yes** | `0x...` |
-| `MINING_PROMPT_DO_ADDRESS` | PromptDO contract address | **Yes** | `0x...` |
-| `MINING_DATA_INDEX_ADDRESS` | DataIndex contract address | **Yes** | `0x...` |
-| `MINING_PRIVATE_KEY` | Wallet private key for signing | **No**, depends on SPONSORED | `0x...` (NEVER commit!) |
+| `PM_NODE_ENV` | Environment mode | **Yes** | `development`, `production` |
+| `PM_PORT` | Server port | **Yes** | `3000` |
+| `PM_RPC_URL` | Blockchain RPC endpoint | **Yes** | `https://rpc.nexera.network` |
+| `PM_CHAIN_ID` | Blockchain chain ID | **Yes** | `7208` (mainnet), `72080` (testnet) |
+| `PM_PROMPT_MINER_ADDRESS` | PromptMiner contract address | **Yes** | `0x...` |
+| `PM_ACTIVITY_POINTS_ADDRESS` | ActivityPoints contract address | **Yes** | `0x...` |
+| `PM_PROMPT_DO_ADDRESS` | PromptDO contract address | **Yes** | `0x...` |
+| `PM_DATA_INDEX_ADDRESS` | DataIndex contract address | **Yes** | `0x...` |
+| `PM_PRIVATE_KEY` | Wallet private key for signing | **No**, depends on SPONSORED | `0x...` (NEVER commit!) |
 
 #### API Security (B2C - Your frontend)
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
-| `MINING_API_KEYS` | Comma-separated list of valid API keys | No | `key1,key2,key3` |
-| `MINING_REQUIRE_AUTH` | Require authentication globally | Yes | `true`, `false` (default: `true`) |
-| `MINING_REQUIRE_AUTH_MINT` | Require auth for mint endpoint | No | `true`, `false` (default: `true`) |
-| `MINING_REQUIRE_AUTH_MIGRATE` | Require auth for migrate endpoint | No | `true`, `false` (default: `true`) |
-| `MINING_REQUIRE_AUTH_READ` | Require auth for read endpoints | No | `true`, `false` (default: `false`) |
+| `PM_API_KEYS` | Comma-separated list of valid API keys | No | `key1,key2,key3` |
+| `PM_REQUIRE_AUTH` | Require authentication globally | Yes | `true`, `false` (default: `true`) |
+| `PM_REQUIRE_AUTH_MINT` | Require auth for mint endpoint | No | `true`, `false` (default: `true`) |
+| `PM_REQUIRE_AUTH_MIGRATE` | Require auth for migrate endpoint | No | `true`, `false` (default: `true`) |
+| `PM_REQUIRE_AUTH_READ` | Require auth for read endpoints | No | `true`, `false` (default: `false`) |
 
 #### Optional Configuration
 
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
-| `MINING_PZERO_AUTH_TIMEOUT_MS` | Timeout for PZERO API calls | No | `5000` (5 seconds) |
-| `MINING_PZERO_RETRY_ATTEMPTS` | Number of retry attempts for PZERO | No | `3` |
-| `MINING_RATE_LIMIT_WINDOW_MS` | Rate limit time window (ms) | No | `900000` (15 min) |
-| `MINING_RATE_LIMIT_MAX_REQUESTS` | Max requests per window | No | `100` |
-| `MINING_RATE_LIMIT_SKIP_AUTHENTICATED` | Skip rate limit for authenticated users | No | `true`, `false` |
-| `MINING_LOG_LEVEL` | Logging level | No | `info`, `debug`, `warn`, `error` |
+| `PM_PZERO_AUTH_TIMEOUT_MS` | Timeout for PZERO API calls | No | `5000` (5 seconds) |
+| `PM_PZERO_RETRY_ATTEMPTS` | Number of retry attempts for PZERO | No | `3` |
+| `PM_RATE_LIMIT_WINDOW_MS` | Rate limit time window (ms) | No | `900000` (15 min) |
+| `PM_RATE_LIMIT_MAX_REQUESTS` | Max requests per window | No | `100` |
+| `PM_RATE_LIMIT_SKIP_AUTHENTICATED` | Skip rate limit for authenticated users | No | `true`, `false` |
+| `PM_LOG_LEVEL` | Logging level | No | `info`, `debug`, `warn`, `error` |
 
 **Security Warning**: Never commit your `.env` file or expose private keys. Use secure key management systems in production.
 
@@ -269,17 +269,17 @@ This automated verification script will check:
 
 1. Checking Environment Variables...
 
-✓ MINING_NODE_ENV: Set
-✓ MINING_PORT: Set
-✓ MINING_RPC_URL: Set
-✓ MINING_PZERO_API_KEY: Set
+✓ PM_NODE_ENV: Set
+✓ PM_PORT: Set
+✓ PM_RPC_URL: Set
+✓ PM_PZERO_API_KEY: Set
 ...
 
 2. Validating Configuration Values...
 
-✓ MINING_PZERO_API_KEY format: Valid (starts with pzero_)
-✓ MINING_PZERO_API_URL format: Valid URL
-✓ MINING_PROMPT_MINER_ADDRESS: Valid blockchain address
+✓ PM_PZERO_API_KEY format: Valid (starts with pzero_)
+✓ PM_PZERO_API_URL format: Valid URL
+✓ PM_PROMPT_MINER_ADDRESS: Valid blockchain address
 ...
 
 3. Testing External Connections...
@@ -300,8 +300,8 @@ Your configuration is ready. You can now run:
 
 **Tests failed:**
 ```
-✗ MINING_PZERO_API_KEY: Missing!
-✗ MINING_PZERO_API: Cannot reach MINING_PZERO_API (ENOTFOUND)
+✗ PM_PZERO_API_KEY: Missing!
+✗ PM_PZERO_API: Cannot reach PM_PZERO_API (ENOTFOUND)
 
 2 test(s) failed
 ═══════════════════════════════════════
@@ -704,18 +704,18 @@ docker-compose down
 
 **Development/Testing**: Use Nexera testnet
 ```env
-MINING_NODE_ENV=development
-MINING_RPC_URL=https://rpc.testnet.nexera.network
-MINING_CHAIN_ID=72080
-MINING_PZERO_API_KEY=pzero_live_xxxxxxxxxxxxx
+PM_NODE_ENV=development
+PM_RPC_URL=https://rpc.testnet.nexera.network
+PM_CHAIN_ID=72080
+PM_PZERO_API_KEY=pzero_live_xxxxxxxxxxxxx
 ```
 
 **Production**: Use Nexera mainnet with production PZERO credentials
 ```env
-MINING_NODE_ENV=production
-MINING_RPC_URL=https://rpc.nexera.network
-MINING_CHAIN_ID=7208
-MINING_PZERO_API_KEY=pzero_live_xxxxxxxxxxxxx
+PM_NODE_ENV=production
+PM_RPC_URL=https://rpc.nexera.network
+PM_CHAIN_ID=7208
+PM_PZERO_API_KEY=pzero_live_xxxxxxxxxxxxx
 ```
 
 

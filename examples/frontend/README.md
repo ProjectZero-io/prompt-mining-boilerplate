@@ -113,7 +113,7 @@ This directory contains **complete, standalone examples** demonstrating how to i
 
 5. **Backend Wallet Funded**
    - Relayer's backend wallet needs tNXRA (testnet) or NXRA (mainnet) for gas
-   - Configure `MINING_PRIVATE_KEY` in backend `.env`
+   - Configure `PM_PRIVATE_KEY` in backend `.env`
    - Monitor wallet balance regularly
 
 ---
@@ -151,21 +151,21 @@ Ensure your backend `.env` is properly configured:
 
 ```env
 # PZERO B2B Credentials
-MINING_PZERO_API_KEY=your-pzero-api-key
-MINING_PZERO_CLIENT_ID=your-client-id
+PM_PZERO_API_KEY=your-pzero-api-key
+PM_PZERO_CLIENT_ID=your-client-id
 
 # Blockchain Configuration
-MINING_RPC_URL=https://rpc.testnet.nexera.network
-MINING_CHAIN_ID=72080
+PM_RPC_URL=https://rpc.testnet.nexera.network
+PM_CHAIN_ID=72080
 
 # Contract Addresses
-MINING_PROMPT_MINER_ADDRESS=0x...
-MINING_ACTIVITY_POINTS_ADDRESS=0x...
-MINING_PROMPT_DO_ADDRESS=0x...
-MINING_DATA_INDEX_ADDRESS=0x...
+PM_PROMPT_MINER_ADDRESS=0x...
+PM_ACTIVITY_POINTS_ADDRESS=0x...
+PM_PROMPT_DO_ADDRESS=0x...
+PM_DATA_INDEX_ADDRESS=0x...
 
 # For Meta-Transaction Example (Gasless Minting)
-MINING_PRIVATE_KEY=0x...  # Relayer wallet private key
+PM_PRIVATE_KEY=0x...  # Relayer wallet private key
 ```
 
 ### Step 3: Start Backend Server
@@ -365,7 +365,7 @@ async function mintPrompt(prompt, signer, address) {
 - Check quota: `curl http://localhost:3000/api/quota`
 - Upgrade PZERO tier at https://gateway.pzero.io
 - Wait for monthly quota reset
-- Verify `MINING_PZERO_API_KEY` and `MINING_PZERO_CLIENT_ID` in backend `.env`
+- Verify `PM_PZERO_API_KEY` and `PM_PZERO_CLIENT_ID` in backend `.env`
 
 ---
 
@@ -388,7 +388,7 @@ async function mintPrompt(prompt, signer, address) {
 **Solutions:**
 - Open the HTML file in a text editor
 - Find the CONFIG section
-- Update `MINING_PROMPT_MINER_ADDRESS` with your deployed contract address
+- Update `PM_PROMPT_MINER_ADDRESS` with your deployed contract address
 - Save and refresh browser
 
 ---
@@ -419,9 +419,9 @@ async function mintPrompt(prompt, signer, address) {
 ### Production Checklist
 
 - [ ] Update all contract addresses to mainnet
-- [ ] Change `MINING_CHAIN_ID` to 7208 (Nexera mainnet)
-- [ ] Update `MINING_BACKEND_API_URL` to production URL (HTTPS)
-- [ ] Update `MINING_BLOCK_EXPLORER_URL` to Nexera mainnet explorer
+- [ ] Change `PM_CHAIN_ID` to 7208 (Nexera mainnet)
+- [ ] Update `PM_BACKEND_API_URL` to production URL (HTTPS)
+- [ ] Update `PM_BLOCK_EXPLORER_URL` to Nexera mainnet explorer
 - [ ] Implement proper error tracking (Sentry, etc.)
 - [ ] Add analytics (track mints, errors, user flow)
 - [ ] Test with real NXRA on mainnet (small amounts first)
