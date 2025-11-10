@@ -34,7 +34,7 @@ Company Boilerplate               PZERO Gateway
 ## Base URL
 
 ```
-Production: https://api.pzero.io/v1
+Production: https://pm-api.projectzero.io/v1
 Sandbox:    https://sandbox.api.pzero.io/v1
 ```
 

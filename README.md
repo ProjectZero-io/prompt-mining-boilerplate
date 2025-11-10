@@ -59,7 +59,7 @@ This boilerplate enables your ai infrastructure to reward your users for contrib
 
 To use this boilerplate, you need to register for PZERO API credentials:
 
- **[Register at gateway.pzero.io/register](https://gateway.pzero.io/register)**
+ **[Register at pm-api.projectzero.io/register](https://pm-api.projectzero.io/register)**
 
 You'll receive:
 - `PM_PZERO_API_KEY` - Your API authentication key
@@ -90,7 +90,7 @@ Before you begin, ensure you have:
 
 - **Node.js** >= 18.0.0
 - **npm** >= 9.0.0
-- **PZERO API credentials** - [Register at gateway.pzero.io/register](https://gateway.pzero.io/register)
+- **PZERO API credentials** - [Register at gateway.pzero.io/register](https://pm-api.projectzero.io/register)
 - **Crypto wallet** with Nexera testnet/mainnet access
 - **RPC endpoint** (Nexera RPC or your own node)
 
@@ -116,11 +116,11 @@ cp .env.example .env
 
 Edit `.env` and configure the following **required** variables:
 
-**PZERO B2B Integration** (get these from [gateway.pzero.io/register](https://gateway.pzero.io/register)):
+**PZERO B2B Integration** (get these from [gateway.pzero.io/register](https://pm-api.projectzero.io/register)):
 ```env
 PM_PZERO_API_KEY=pzero_live_xxxxxxxxxxxxx
 PM_PZERO_CLIENT_ID=your-company-id
-PM_PZERO_API_URL=https://api.pzero.io/v1
+PM_PZERO_API_URL=https://pm-api.projectzero.io/v1
 ```
 
 **Blockchain Configuration**:
@@ -196,9 +196,9 @@ Create a `.env` file in the root directory with the following variables:
 |----------|-------------|----------|---------|
 | `PM_PZERO_API_KEY` | PZERO API authentication key | **Yes** | `pzero_live_xxxxxxxxxxxxx` |
 | `PM_PZERO_CLIENT_ID` | Your company's PZERO client ID | **Yes** | `your-company-id` |
-| `PM_PZERO_API_URL` | PZERO Gateway API endpoint | **Yes** | `https://api.pzero.io/v1` |
+| `PM_PZERO_API_URL` | PZERO Gateway API endpoint | **Yes** | `https://pm-api.projectzero.io/v1` |
 
-Get these credentials at **[gateway.pzero.io/register](https://gateway.pzero.io/register)**
+Get these credentials at **[gateway.pzero.io/register](https://pm-api.projectzero.io/register)**
 
 #### Blockchain Configuration (Required)
 
