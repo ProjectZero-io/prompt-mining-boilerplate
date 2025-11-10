@@ -130,7 +130,7 @@ docker run -d \
   -e PM_CHAIN_ID=7208 \
   -e PM_PZERO_API_KEY=pzero_live_xxxxx \
   -e PM_PZERO_CLIENT_ID=your-client-id \
-  -e PM_PZERO_API_URL=https://pm-api.projectzero.io/v1 \
+  -e PM_PZERO_API_URL=https://pm-gateway.projectzero.io/v1 \
   -e PM_PRIVATE_KEY=0xYourPrivateKey \
   -e PM_PROMPT_MINER_ADDRESS=0x... \
   -e PM_ACTIVITY_POINTS_ADDRESS=0x... \
@@ -224,7 +224,7 @@ docker-compose up -d --build
 
 **For production, you MUST:**
 
-1. **Use the real PZERO Gateway** at `https://pm-api.projectzero.io/v1`
+1. **Use the real PZERO Gateway** at `https://pm-gateway.projectzero.io/v1`
 2. **Remove the development network** from docker-compose.yml
 3. **Use production environment variables**
 
@@ -244,7 +244,7 @@ PM_RPC_URL=https://rpc.nexera.network
 PM_CHAIN_ID=7208
 
 # PZERO Production - USE REAL GATEWAY
-PM_PZERO_API_URL=https://pm-api.projectzero.io/v1
+PM_PZERO_API_URL=https://pm-gateway.projectzero.io/v1
 PM_PZERO_API_KEY=pzero_prod_xxxxxxxxxxxxx
 PM_PZERO_CLIENT_ID=your-production-company-id
 PM_PZERO_AUTH_TIMEOUT_MS=10000

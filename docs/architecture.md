@@ -648,7 +648,7 @@ console.log(`Estimated cost per mint: ${ethers.formatEther(estimatedCost)} ETH`)
 **Always required:**
 - Header: `x-pzero-api-key`
 - Header: `x-pzero-client-id`
-- Get credentials at: https://pm-api.projectzero.io/register
+- Get credentials at: https://pm-gateway.projectzero.io/register
 
 ## Components
 
@@ -849,7 +849,7 @@ Error handling and retry logic
 ### Prerequisites
 
 1. **Register with PZERO:**
-   - Get API credentials at https://pm-api.projectzero.io/register
+   - Get API credentials at https://pm-gateway.projectzero.io/register
    - Choose tier (Starter, Pro, Enterprise)
    - Note your API key and client ID
 
