@@ -8,7 +8,7 @@ Your current setup is configured for **LOCAL DEVELOPMENT** with a self-hosted PZ
 
 | Configuration | Development (Current) | Production (Required) |
 |---------------|----------------------|----------------------|
-| **PZERO URL** | `http://pzero-gateway-app:3001/v1` | `https://gateway.pzero.io/v1` |
+| **PZERO URL** | `http://pzero-gateway-app:3001/v1` | `https://pm-api.projectzero.io/v1` |
 | **PZERO Network** | Docker network to local container | Internet (HTTPS) |
 | **API Key** | `pzero_test_...` | `pzero_prod_...` |
 | **Blockchain** | Testnet (Chain ID: 72080) | Mainnet (Chain ID: 7208) |
@@ -59,7 +59,7 @@ PM_NODE_ENV=production
 PM_PORT=3000
 
 # PZERO Production - Use official gateway
-PM_PZERO_API_URL=https://gateway.pzero.io/v1
+PM_PZERO_API_URL=https://pm-api.projectzero.io/v1
 PM_PZERO_API_KEY=pzero_prod_your_real_key_here
 PM_PZERO_CLIENT_ID=your-production-company-id
 PM_PZERO_AUTH_TIMEOUT_MS=10000
@@ -97,7 +97,7 @@ Or manually edit `docker-compose.yml` to remove the development network:
 
 **Step 3: Get Production PZERO Credentials**
 
-1. Register at https://gateway.pzero.io/register
+1. Register at https://pm-api.projectzero.io/register
 2. Get your production API key (starts with `pzero_prod_`)
 3. Get your production Client ID
 4. Update `.env` with real credentials
@@ -137,7 +137,7 @@ services:
 ## Security Checklist for Production
 
 - [ ] Change `PM_NODE_ENV=production`
-- [ ] Use real PZERO Gateway URL (`https://gateway.pzero.io/v1`)
+- [ ] Use real PZERO Gateway URL (`https://pm-api.projectzero.io/v1`)
 - [ ] Use production API keys (not test keys)
 - [ ] Enable authentication (`PM_REQUIRE_AUTH=true`)
 - [ ] Enable mint authentication (`PM_REQUIRE_AUTH_MINT=true`)
@@ -188,7 +188,7 @@ docker logs -f prompt-mining-api
 
 ```bash
 # Check connection to production PZERO
-curl https://gateway.pzero.io/v1/health
+curl https://pm-api.projectzero.io/v1/health
 
 # Test your API
 curl https://your-api.yourdomain.com/health
@@ -219,7 +219,7 @@ curl https://your-api.yourdomain.com/health
 - Verify network connection: `docker network inspect prompt-mining-api-gateway_pzero-network`
 
 **Production:**
-- Check PZERO Gateway is accessible: `curl https://gateway.pzero.io/v1/health`
+- Check PZERO Gateway is accessible: `curl https://pm-api.projectzero.io/v1/health`
 - Verify API credentials are correct
 - Check firewall/network settings
 
@@ -227,7 +227,7 @@ curl https://your-api.yourdomain.com/health
 
 - Your API key is not registered in the PZERO Gateway database
 - For development: Register in your local gateway database
-- For production: Get real credentials from https://gateway.pzero.io/register
+- For production: Get real credentials from https://pm-api.projectzero.io/register
 
 ## Related Documentation
 

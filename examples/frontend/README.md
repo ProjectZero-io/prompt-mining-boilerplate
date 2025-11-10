@@ -363,7 +363,7 @@ async function mintPrompt(prompt, signer, address) {
 **Solutions:**
 - PZERO monthly quota exceeded
 - Check quota: `curl http://localhost:3000/api/quota`
-- Upgrade PZERO tier at https://gateway.pzero.io
+- Upgrade PZERO tier at https://pm-api.projectzero.io
 - Wait for monthly quota reset
 - Verify `PM_PZERO_API_KEY` and `PM_PZERO_CLIENT_ID` in backend `.env`
 
@@ -466,7 +466,7 @@ async function mintPrompt(prompt, signer, address) {
 
 - **Documentation:** See main [README.md](../../README.md) and [docs/architecture.md](../../docs/architecture.md)
 - **Backend Issues:** Check backend logs and [CLAUDE.md](../../CLAUDE.md) for development guidelines
-- **PZERO API:** https://gateway.pzero.io
+- **PZERO API:** https://pm-api.projectzero.io
 - **Smart Contracts:** https://docs.projectzero.io
 
 ---
