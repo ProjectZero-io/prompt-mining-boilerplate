@@ -201,7 +201,7 @@ export async function getQuotaStatus(): Promise<{
 export async function getSignableMintData(
   prompt: string,
   author: string,
-  activityPoints: string | number,
+  activityPoints: string,
   gas: bigint = 500000n,
   deadline?: bigint
 ): Promise<{
