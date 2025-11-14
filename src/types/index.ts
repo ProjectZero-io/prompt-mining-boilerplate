@@ -147,8 +147,6 @@ export interface PZeroMintAuthRequest {
   author: string;
   /** Amount of activity points to reward */
   activityPoints: string;
-  /** Company/client identifier */
-  clientId: string;
   /** Blockchain chain ID */
   chainId: string;
   /** Request timestamp (Unix milliseconds) */
