@@ -68,7 +68,6 @@ const server = app.listen(config.server.port, () => {
   console.log(`Environment:    ${config.env}`);
   console.log(`Server:         http://${host}:${config.server.port}`);
   console.log(`Chain ID:       ${config.blockchain.chainId}`);
-  console.log(`PZERO Client:   ${config.pzero.clientId}`);
   console.log('═══════════════════════════════════════════════════');
   console.log('\nAvailable endpoints:');
   console.log('  GET  /health                           - Health check');
