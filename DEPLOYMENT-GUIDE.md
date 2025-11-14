@@ -61,7 +61,6 @@ PM_PORT=3000
 # PZERO Production - Use official gateway
 PM_PZERO_API_URL=https://pm-gateway.projectzero.io/v1
 PM_PZERO_API_KEY=pzero_prod_your_real_key_here
-PM_PZERO_CLIENT_ID=your-production-company-id
 PM_PZERO_AUTH_TIMEOUT_MS=10000
 PM_PZERO_RETRY_ATTEMPTS=5
 
@@ -119,7 +118,6 @@ If you're deploying your own PZERO Gateway in production:
 # Self-hosted production gateway
 PM_PZERO_API_URL=https://your-pzero-gateway.yourdomain.com/v1
 PM_PZERO_API_KEY=your_custom_api_key
-PM_PZERO_CLIENT_ID=your-company-id
 ```
 
 **Step 3: Update `docker-compose.yml`**

@@ -879,7 +879,6 @@ Edit `.env` with your values:
 ```env
 # PZERO B2B Credentials
 PM_PZERO_API_KEY=your-api-key
-PM_PZERO_CLIENT_ID=your-client-id
 
 # Blockchain Configuration
 PM_RPC_URL=https://rpc.testnet.nexera.network

@@ -63,7 +63,6 @@ To use this boilerplate, you need to register for PZERO API credentials:
 
 You'll receive:
 - `PM_PZERO_API_KEY` - Your API authentication key
-- `PM_PZERO_CLIENT_ID` - Your unique client identifier
 - `PM_PZERO_API_URL` - The PZERO Gateway endpoint
 
 ## Table of Contents
@@ -119,7 +118,6 @@ Edit `.env` and configure the following **required** variables:
 **PZERO B2B Integration** (get these from [gateway.pzero.io/register](https://pm-gateway.projectzero.io/register)):
 ```env
 PM_PZERO_API_KEY=pzero_live_xxxxxxxxxxxxx
-PM_PZERO_CLIENT_ID=your-company-id
 PM_PZERO_API_URL=https://pm-gateway.projectzero.io/v1
 ```
 
@@ -195,7 +193,6 @@ Create a `.env` file in the root directory with the following variables:
 | Variable | Description | Required | Example |
 |----------|-------------|----------|---------|
 | `PM_PZERO_API_KEY` | PZERO API authentication key | **Yes** | `pzero_live_xxxxxxxxxxxxx` |
-| `PM_PZERO_CLIENT_ID` | Your company's PZERO client ID | **Yes** | `your-company-id` |
 | `PM_PZERO_API_URL` | PZERO Gateway API endpoint | **Yes** | `https://pm-gateway.projectzero.io/v1` |
 
 Get these credentials at **[gateway.pzero.io/register](https://pm-gateway.projectzero.io/register)**

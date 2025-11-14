@@ -152,7 +152,6 @@ Ensure your backend `.env` is properly configured:
 ```env
 # PZERO B2B Credentials
 PM_PZERO_API_KEY=your-pzero-api-key
-PM_PZERO_CLIENT_ID=your-client-id
 
 # Blockchain Configuration
 PM_RPC_URL=https://rpc.testnet.nexera.network
@@ -365,7 +364,6 @@ async function mintPrompt(prompt, signer, address) {
 - Check quota: `curl http://localhost:3000/api/quota`
 - Upgrade PZERO tier at https://pm-api.projectzero.io
 - Wait for monthly quota reset
-- Verify `PM_PZERO_API_KEY` and `PM_PZERO_CLIENT_ID` in backend `.env`
 
 ---
 

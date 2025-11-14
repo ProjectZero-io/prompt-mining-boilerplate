@@ -129,7 +129,6 @@ docker run -d \
   -e PM_RPC_URL=https://rpc.nexera.network \
   -e PM_CHAIN_ID=7208 \
   -e PM_PZERO_API_KEY=pzero_live_xxxxx \
-  -e PM_PZERO_CLIENT_ID=your-client-id \
   -e PM_PZERO_API_URL=https://pm-gateway.projectzero.io/v1 \
   -e PM_PRIVATE_KEY=0xYourPrivateKey \
   -e PM_PROMPT_MINER_ADDRESS=0x... \
@@ -246,7 +245,6 @@ PM_CHAIN_ID=7208
 # PZERO Production - USE REAL GATEWAY
 PM_PZERO_API_URL=https://pm-gateway.projectzero.io/v1
 PM_PZERO_API_KEY=pzero_prod_xxxxxxxxxxxxx
-PM_PZERO_CLIENT_ID=your-production-company-id
 PM_PZERO_AUTH_TIMEOUT_MS=10000
 PM_PZERO_RETRY_ATTEMPTS=5
 
