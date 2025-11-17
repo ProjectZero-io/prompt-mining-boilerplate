@@ -46,8 +46,6 @@ export interface PromptAuthorizationResponse {
   authorization: {
     /** PZERO's authorization signature (verified by smart contract) */
     signature: string;
-    /** Unique nonce for this authorization */
-    nonce: string;
   };
   /** Data to include in the user's transaction */
   mintData: {
@@ -155,8 +153,6 @@ export interface PZeroMintAuthRequest {
 export interface PZeroAuthorization {
   /** PZERO's authorization signature */
   signature: string;
-  /** Unique nonce for this authorization */
-  nonce: string;
 }
 
 /**

@@ -160,7 +160,6 @@ export async function getSignableMintData(req: Request, res: Response): Promise<
     },
     authorization: {
       signature: result.authorization.signature,
-      nonce: result.authorization.nonce,
     },
   };
 

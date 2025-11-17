@@ -180,8 +180,7 @@ const authorization = await pzeroAuthService.requestMintAuthorization({
 return {
   promptHash,
   authorization: {
-    signature: authorization.signature,
-    nonce: authorization.nonce
+    signature: authorization.signature
   },
   mintData: {
     prompt,        // Full prompt for frontend to submit
@@ -752,7 +751,7 @@ Step 2: Local Hashing
 Step 3: PZERO Authorization
 ├─▶ Send to PZERO: {hash: "0xabc123...", author, reward}
 ├─▶ PZERO NEVER sees: "What is machine learning?"
-└─▶ Receive: {signature, nonce}
+└─▶ Receive: {signature}
 
 Step 4: Transaction Submission
 ├─▶ USER signs (Mode 1): Full prompt + PZERO signature → Blockchain
@@ -761,7 +760,6 @@ Step 4: Transaction Submission
 
 Step 5: Blockchain Verification
 ├─▶ Verify PZERO signature is valid
-├─▶ Verify nonce not used (prevents replay)
 └─▶ Mint prompt + transfer Activity Points
 
 Result: User rewarded, prompt on-chain, PZERO never saw content

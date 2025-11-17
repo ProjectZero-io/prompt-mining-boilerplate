@@ -42,8 +42,7 @@ const router = Router();
  *   "data": {
  *     "promptHash": "0x...",
  *     "authorization": {
- *       "signature": "0x...",
- *       "nonce": "..."
+ *       "signature": "0x..."
  *     },
  *     "mintData": {
  *       "prompt": "What is artificial intelligence?",
@@ -120,8 +119,7 @@ router.post(
  *       "data": "0x..."
  *     },
  *     "authorization": {
- *       "signature": "0x...",
- *       "nonce": "..."
+ *       "signature": "0x..."
  *     }
  *   }
  * }

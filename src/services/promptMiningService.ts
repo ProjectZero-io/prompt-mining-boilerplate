@@ -56,7 +56,6 @@ export async function authorizePromptMint(
   promptHash: string;
   authorization: {
     signature: string;
-    nonce: string;
   };
   mintData: {
     prompt: string;
@@ -85,7 +84,6 @@ export async function authorizePromptMint(
     promptHash,
     authorization: {
       signature: authorization.signature,
-      nonce: authorization.nonce,
     },
     mintData: {
       prompt, // Full prompt returned so frontend can include in transaction
@@ -222,7 +220,6 @@ export async function getSignableMintData(
   };
   authorization: {
     signature: string;
-    nonce: string;
   };
 }> {
   console.log('=== Meta-Transaction Signable Data Flow ===');
@@ -269,7 +266,6 @@ export async function getSignableMintData(
     requestForSigning: typedData.requestForSigning,
     authorization: {
       signature: authorization.signature,
-      nonce: authorization.nonce,
     },
   };
 }
