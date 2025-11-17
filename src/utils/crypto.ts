@@ -42,7 +42,7 @@ export function encodeActivityPoints(points: string): string {
   // Parse as exact token amount (wei)
   const pointsWei = BigInt(points);
 
-  if (pointsWei <= 0n) return '0x';
+  if (pointsWei < 0n) return '0x';
 
   // ABI encode as uint256
   return ethers.AbiCoder.defaultAbiCoder().encode(['uint256'], [pointsWei]);
