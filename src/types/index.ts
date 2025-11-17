@@ -48,8 +48,6 @@ export interface PromptAuthorizationResponse {
     signature: string;
     /** Unique nonce for this authorization */
     nonce: string;
-    /** Unix timestamp when authorization expires */
-    expiresAt: number;
   };
   /** Data to include in the user's transaction */
   mintData: {
@@ -75,11 +73,6 @@ export interface MintPromptResponse {
   promptHash: string;
   /** Block number where the transaction was included */
   blockNumber: number;
-  /** PZERO authorization info (optional, for transparency) */
-  pzeroAuthorization?: {
-    nonce: string;
-    expiresAt: number;
-  };
 }
 
 /**
@@ -164,8 +157,6 @@ export interface PZeroAuthorization {
   signature: string;
   /** Unique nonce for this authorization */
   nonce: string;
-  /** Unix timestamp when this authorization expires */
-  expiresAt: number;
 }
 
 /**

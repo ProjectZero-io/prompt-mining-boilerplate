@@ -43,8 +43,7 @@ const router = Router();
  *     "promptHash": "0x...",
  *     "authorization": {
  *       "signature": "0x...",
- *       "nonce": "...",
- *       "expiresAt": 1234567890
+ *       "nonce": "..."
  *     },
  *     "mintData": {
  *       "prompt": "What is artificial intelligence?",
@@ -122,8 +121,7 @@ router.post(
  *     },
  *     "authorization": {
  *       "signature": "0x...",
- *       "nonce": "...",
- *       "expiresAt": 1234567890
+ *       "nonce": "..."
  *     }
  *   }
  * }
@@ -237,11 +235,7 @@ router.post(
  *     "transactionHash": "0x...",
  *     "promptHash": "0x...",
  *     "blockNumber": 12345,
- *     "gasUsed": "450000",
- *     "pzeroAuthorization": {
- *       "nonce": "...",
- *       "expiresAt": 1234567890
- *     }
+ *     "gasUsed": "450000"
  *   }
  * }
  */

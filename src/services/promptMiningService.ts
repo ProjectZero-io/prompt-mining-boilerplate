@@ -57,7 +57,6 @@ export async function authorizePromptMint(
   authorization: {
     signature: string;
     nonce: string;
-    expiresAt: number;
   };
   mintData: {
     prompt: string;
@@ -87,7 +86,6 @@ export async function authorizePromptMint(
     authorization: {
       signature: authorization.signature,
       nonce: authorization.nonce,
-      expiresAt: authorization.expiresAt,
     },
     mintData: {
       prompt, // Full prompt returned so frontend can include in transaction
@@ -225,7 +223,6 @@ export async function getSignableMintData(
   authorization: {
     signature: string;
     nonce: string;
-    expiresAt: number;
   };
 }> {
   console.log('=== Meta-Transaction Signable Data Flow ===');
@@ -273,7 +270,6 @@ export async function getSignableMintData(
     authorization: {
       signature: authorization.signature,
       nonce: authorization.nonce,
-      expiresAt: authorization.expiresAt,
     },
   };
 }
@@ -384,10 +380,6 @@ export async function mintPromptForUser(
   promptHash: string;
   blockNumber: number;
   gasUsed: string;
-  pzeroAuthorization: {
-    nonce: string;
-    expiresAt: number;
-  };
 }> {
   console.log('=== Backend-Signed Mint Flow ===');
   console.log(`Minting prompt for author: ${author}`);
@@ -436,10 +428,6 @@ export async function mintPromptForUser(
     promptHash,
     blockNumber: receipt.blockNumber,
     gasUsed: receipt.gasUsed.toString(),
-    pzeroAuthorization: {
-      nonce: authorization.nonce,
-      expiresAt: authorization.expiresAt,
-    },
   };
 }
 

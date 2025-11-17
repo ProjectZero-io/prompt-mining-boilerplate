@@ -181,8 +181,7 @@ return {
   promptHash,
   authorization: {
     signature: authorization.signature,
-    nonce: authorization.nonce,
-    expiresAt: authorization.expiresAt
+    nonce: authorization.nonce
   },
   mintData: {
     prompt,        // Full prompt for frontend to submit
@@ -753,7 +752,7 @@ Step 2: Local Hashing
 Step 3: PZERO Authorization
 ├─▶ Send to PZERO: {hash: "0xabc123...", author, reward}
 ├─▶ PZERO NEVER sees: "What is machine learning?"
-└─▶ Receive: {signature, nonce, expiresAt}
+└─▶ Receive: {signature, nonce}
 
 Step 4: Transaction Submission
 ├─▶ USER signs (Mode 1): Full prompt + PZERO signature → Blockchain
@@ -762,7 +761,6 @@ Step 4: Transaction Submission
 
 Step 5: Blockchain Verification
 ├─▶ Verify PZERO signature is valid
-├─▶ Verify authorization not expired
 ├─▶ Verify nonce not used (prevents replay)
 └─▶ Mint prompt + transfer Activity Points
 
