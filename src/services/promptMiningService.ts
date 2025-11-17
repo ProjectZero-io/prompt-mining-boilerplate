@@ -396,12 +396,20 @@ export async function mintPromptForUser(
   const promptHash = hashPrompt(prompt);
   console.log(`1. Hashed prompt locally: ${promptHash.slice(0, 10)}...`);
 
-  // Step 2: Encode activity points
-  const encodedPoints = encodeActivityPoints(activityPoints);
-  console.log(`2. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
+  // Step 2: Check if prompt is already minted
+  const isMinted = await blockchainService.checkPromptMinted(promptHash);
+  if (isMinted) {
+    console.log(`   Prompt already minted! Hash: ${promptHash}`);
+    throw new Error(`Prompt has already been minted. Prompt hash: ${promptHash}`);
+  }
+  console.log(`2. Prompt not yet minted, proceeding...`);
 
-  // Step 3: Request PZERO authorization (hash only!)
-  console.log(`3. Requesting PZERO authorization (hash only)...`);
+  // Step 3: Encode activity points
+  const encodedPoints = encodeActivityPoints(activityPoints);
+  console.log(`3. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
+
+  // Step 4: Request PZERO authorization (hash only!)
+  console.log(`4. Requesting PZERO authorization (hash only)...`);
   const authorization = await pzeroAuthService.requestMintAuthorization(
     promptHash,
     author,
@@ -410,8 +418,8 @@ export async function mintPromptForUser(
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
 
-  // Step 4: Backend signs and submits transaction
-  console.log(`4. Backend signing and submitting transaction...`);
+  // Step 5: Backend signs and submits transaction
+  console.log(`5. Backend signing and submitting transaction...`);
   const receipt = await blockchainService.executeMint(
     author, // User who receives rewards
     promptHash, // Prompt hash

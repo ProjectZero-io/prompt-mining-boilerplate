@@ -98,6 +98,10 @@ export const errorHandler = (
     statusCode = 409;
     errorCode = 'NONCE_EXPIRED';
     message = 'Transaction nonce expired, please retry';
+  } else if (err.message && err.message.includes('already been minted')) {
+    statusCode = 409;
+    errorCode = 'PROMPT_ALREADY_MINTED';
+    message = err.message;
   }
 
   // Log error for debugging (server-side only)
