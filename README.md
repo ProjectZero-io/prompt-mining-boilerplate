@@ -45,7 +45,7 @@ This boilerplate enables your ai infrastructure to reward your users for contrib
                  │      │ PZERO Gateway│   │
                  └─────▶│ (B2B Service)│   │
                         └──────────────┘   │
-                        gateway.pzero.io   │
+               pm-gateway.projectzero.io   │
                                            ▼
                                   ┌──────────────┐
                                   │  Blockchain  │
@@ -89,7 +89,7 @@ Before you begin, ensure you have:
 
 - **Node.js** >= 18.0.0
 - **npm** >= 9.0.0
-- **PZERO API credentials** - [Register at gateway.pzero.io/register](https://pm-gateway.projectzero.io/register)
+- **PZERO API credentials** - [Register at pm-gateway.projectzero.io/register](https://pm-gateway.projectzero.io/register)
 - **Crypto wallet** with Nexera testnet/mainnet access
 - **RPC endpoint** (Nexera RPC or your own node)
 
@@ -115,7 +115,7 @@ cp .env.example .env
 
 Edit `.env` and configure the following **required** variables:
 
-**PZERO B2B Integration** (get these from [gateway.pzero.io/register](https://pm-gateway.projectzero.io/register)):
+**PZERO B2B Integration** (get these from [pm-gateway.projectzero.io/register](https://pm-gateway.projectzero.io/register)):
 ```env
 PM_PZERO_API_KEY=pzero_live_xxxxxxxxxxxxx
 PM_PZERO_API_URL=https://pm-gateway.projectzero.io/v1
@@ -195,7 +195,7 @@ Create a `.env` file in the root directory with the following variables:
 | `PM_PZERO_API_KEY` | PZERO API authentication key | **Yes** | `pzero_live_xxxxxxxxxxxxx` |
 | `PM_PZERO_API_URL` | PZERO Gateway API endpoint | **Yes** | `https://pm-gateway.projectzero.io/v1` |
 
-Get these credentials at **[gateway.pzero.io/register](https://pm-gateway.projectzero.io/register)**
+Get these credentials at **[pm-gateway.projectzero.io/register](https://pm-gateway.projectzero.io/register)**
 
 #### Blockchain Configuration (Required)
 
