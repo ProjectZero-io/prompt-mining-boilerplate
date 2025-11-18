@@ -23,7 +23,6 @@ interface Config {
   };
   pzero: {
     apiKey: string;
-    clientId: string;
     apiUrl: string;
     authTimeoutMs: number;
     retryAttempts: number;
@@ -138,7 +137,6 @@ export const config: Config = {
 
   pzero: {
     apiKey: requireEnv('PM_PZERO_API_KEY', process.env.PM_PZERO_API_KEY),
-    clientId: requireEnv('PM_PZERO_CLIENT_ID', process.env.PM_PZERO_CLIENT_ID),
     apiUrl: requireEnv('PM_PZERO_API_URL', process.env.PM_PZERO_API_URL),
     authTimeoutMs: parseInt(process.env.PM_PZERO_AUTH_TIMEOUT_MS || '5000', 10),
     retryAttempts: parseInt(process.env.PM_PZERO_RETRY_ATTEMPTS || '3', 10),

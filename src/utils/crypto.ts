@@ -31,25 +31,18 @@ export function hashPrompt(prompt: string): string {
  * Activity points must be ABI-encoded before being used in contract calls
  * and signature generation.
  *
- * @param points - Activity points amount (can be in ether or wei, as string or number)
+ * @param points - Activity points amount as a string (exact token amount in wei)
  * @returns ABI-encoded activity points
  *
  * @example
- * const encoded = encodeActivityPoints("10"); // 10 ether
- * const encoded = encodeActivityPoints(10); // 10 ether
- * const encoded = encodeActivityPoints(ethers.parseEther("10")); // 10 ether in wei
+ * const encoded = encodeActivityPoints("10"); // 10 tokens (wei)
+ * const encoded = encodeActivityPoints("1000000000000000000"); // 1000000000000000000 tokens (wei)
  */
-export function encodeActivityPoints(points: string | number): string {
-  // Convert to string for consistent handling
-  const pointsStr = String(points);
+export function encodeActivityPoints(points: string): string {
+  // Parse as exact token amount (wei)
+  const pointsWei = BigInt(points);
 
-  // Parse to wei if not already
-  const pointsWei =
-    pointsStr.includes('.') || parseInt(pointsStr, 10) < 1000
-      ? ethers.parseEther(pointsStr)
-      : BigInt(pointsStr);
-
-  if (pointsWei <= 0n) return '0x';
+  if (pointsWei < 0n) return '0x';
 
   // ABI encode as uint256
   return ethers.AbiCoder.defaultAbiCoder().encode(['uint256'], [pointsWei]);

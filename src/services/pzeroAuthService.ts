@@ -27,7 +27,6 @@ const pzeroClient: AxiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
     'x-pzero-api-key': config.pzero.apiKey,
-    'x-pzero-client-id': config.pzero.clientId,
   },
 });
 
@@ -198,7 +197,6 @@ export async function requestMintAuthorization(
     author,
     activityPoints,
     signerAddress,
-    clientId: config.pzero.clientId,
     chainId: config.blockchain.chainId,
     timestamp: Date.now(),
   };

@@ -60,7 +60,7 @@ async function main() {
 
       if (error.code === 'QUOTA_EXCEEDED') {
         console.error('\nYour PZERO quota is exceeded.');
-        console.error('   Please upgrade your tier at https://dashboard.pzero.io');
+        console.error('   Please upgrade your tier at https://pm-gateway.projectzero.io');
       } else if (error.code === 'INVALID_API_KEY') {
         console.error('\nInvalid PZERO API key.');
         console.error('   Check your PZERO_API_KEY in .env file');

@@ -180,9 +180,7 @@ const authorization = await pzeroAuthService.requestMintAuthorization({
 return {
   promptHash,
   authorization: {
-    signature: authorization.signature,
-    nonce: authorization.nonce,
-    expiresAt: authorization.expiresAt
+    signature: authorization.signature
   },
   mintData: {
     prompt,        // Full prompt for frontend to submit
@@ -648,7 +646,7 @@ console.log(`Estimated cost per mint: ${ethers.formatEther(estimatedCost)} ETH`)
 **Always required:**
 - Header: `x-pzero-api-key`
 - Header: `x-pzero-client-id`
-- Get credentials at: https://pm-api.projectzero.io/register
+- Get credentials at: https://pm-gateway.projectzero.io/register
 
 ## Components
 
@@ -753,7 +751,7 @@ Step 2: Local Hashing
 Step 3: PZERO Authorization
 ├─▶ Send to PZERO: {hash: "0xabc123...", author, reward}
 ├─▶ PZERO NEVER sees: "What is machine learning?"
-└─▶ Receive: {signature, nonce, expiresAt}
+└─▶ Receive: {signature}
 
 Step 4: Transaction Submission
 ├─▶ USER signs (Mode 1): Full prompt + PZERO signature → Blockchain
@@ -762,8 +760,6 @@ Step 4: Transaction Submission
 
 Step 5: Blockchain Verification
 ├─▶ Verify PZERO signature is valid
-├─▶ Verify authorization not expired
-├─▶ Verify nonce not used (prevents replay)
 └─▶ Mint prompt + transfer Activity Points
 
 Result: User rewarded, prompt on-chain, PZERO never saw content
@@ -849,7 +845,7 @@ Error handling and retry logic
 ### Prerequisites
 
 1. **Register with PZERO:**
-   - Get API credentials at https://pm-api.projectzero.io/register
+   - Get API credentials at https://pm-gateway.projectzero.io/register
    - Choose tier (Starter, Pro, Enterprise)
    - Note your API key and client ID
 
@@ -879,7 +875,6 @@ Edit `.env` with your values:
 ```env
 # PZERO B2B Credentials
 PM_PZERO_API_KEY=your-api-key
-PM_PZERO_CLIENT_ID=your-client-id
 
 # Blockchain Configuration
 PM_RPC_URL=https://rpc.testnet.nexera.network

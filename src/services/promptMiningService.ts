@@ -56,8 +56,6 @@ export async function authorizePromptMint(
   promptHash: string;
   authorization: {
     signature: string;
-    nonce: string;
-    expiresAt: number;
   };
   mintData: {
     prompt: string;
@@ -86,8 +84,6 @@ export async function authorizePromptMint(
     promptHash,
     authorization: {
       signature: authorization.signature,
-      nonce: authorization.nonce,
-      expiresAt: authorization.expiresAt,
     },
     mintData: {
       prompt, // Full prompt returned so frontend can include in transaction
@@ -201,7 +197,7 @@ export async function getQuotaStatus(): Promise<{
 export async function getSignableMintData(
   prompt: string,
   author: string,
-  activityPoints: string | number,
+  activityPoints: string,
   gas: bigint = 500000n,
   deadline?: bigint
 ): Promise<{
@@ -224,8 +220,6 @@ export async function getSignableMintData(
   };
   authorization: {
     signature: string;
-    nonce: string;
-    expiresAt: number;
   };
 }> {
   console.log('=== Meta-Transaction Signable Data Flow ===');
@@ -272,8 +266,6 @@ export async function getSignableMintData(
     requestForSigning: typedData.requestForSigning,
     authorization: {
       signature: authorization.signature,
-      nonce: authorization.nonce,
-      expiresAt: authorization.expiresAt,
     },
   };
 }
@@ -384,10 +376,6 @@ export async function mintPromptForUser(
   promptHash: string;
   blockNumber: number;
   gasUsed: string;
-  pzeroAuthorization: {
-    nonce: string;
-    expiresAt: number;
-  };
 }> {
   console.log('=== Backend-Signed Mint Flow ===');
   console.log(`Minting prompt for author: ${author}`);
@@ -396,12 +384,20 @@ export async function mintPromptForUser(
   const promptHash = hashPrompt(prompt);
   console.log(`1. Hashed prompt locally: ${promptHash.slice(0, 10)}...`);
 
-  // Step 2: Encode activity points
-  const encodedPoints = encodeActivityPoints(activityPoints);
-  console.log(`2. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
+  // Step 2: Check if prompt is already minted
+  const isMinted = await blockchainService.checkPromptMinted(promptHash);
+  if (isMinted) {
+    console.log(`   Prompt already minted! Hash: ${promptHash}`);
+    throw new Error(`Prompt has already been minted. Prompt hash: ${promptHash}`);
+  }
+  console.log(`2. Prompt not yet minted, proceeding...`);
 
-  // Step 3: Request PZERO authorization (hash only!)
-  console.log(`3. Requesting PZERO authorization (hash only)...`);
+  // Step 3: Encode activity points
+  const encodedPoints = encodeActivityPoints(activityPoints);
+  console.log(`3. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
+
+  // Step 4: Request PZERO authorization (hash only!)
+  console.log(`4. Requesting PZERO authorization (hash only)...`);
   const authorization = await pzeroAuthService.requestMintAuthorization(
     promptHash,
     author,
@@ -410,8 +406,8 @@ export async function mintPromptForUser(
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
 
-  // Step 4: Backend signs and submits transaction
-  console.log(`4. Backend signing and submitting transaction...`);
+  // Step 5: Backend signs and submits transaction
+  console.log(`5. Backend signing and submitting transaction...`);
   const receipt = await blockchainService.executeMint(
     author, // User who receives rewards
     promptHash, // Prompt hash
@@ -428,10 +424,6 @@ export async function mintPromptForUser(
     promptHash,
     blockNumber: receipt.blockNumber,
     gasUsed: receipt.gasUsed.toString(),
-    pzeroAuthorization: {
-      nonce: authorization.nonce,
-      expiresAt: authorization.expiresAt,
-    },
   };
 }
 

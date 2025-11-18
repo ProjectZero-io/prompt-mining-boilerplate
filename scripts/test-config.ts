@@ -44,7 +44,6 @@ async function runTests() {
     'PM_ACTIVITY_POINTS_ADDRESS',
     'PM_PRIVATE_KEY',
     'PM_PZERO_API_KEY',
-    'PM_PZERO_CLIENT_ID',
     'PM_PZERO_API_URL',
   ];
 
@@ -147,7 +146,6 @@ async function runTests() {
           timeout: 5000,
           headers: {
             'x-pzero-api-key': process.env.PM_PZERO_API_KEY,
-            'x-pzero-client-id': process.env.PM_PZERO_CLIENT_ID,
           },
         }
       );
