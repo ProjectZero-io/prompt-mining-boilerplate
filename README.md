@@ -357,6 +357,9 @@ Authentication requirements per endpoint are configurable via environment variab
 | `POST` | `/api/prompts/signable-mint-data` | Get EIP-712 typed data for meta-transaction | Configurable (default: Yes) |
 | `POST` | `/api/prompts/execute-metatx` | Execute meta-transaction (relayer mode) | Configurable (default: Yes) |
 | `POST` | `/api/prompts/mint-for-user` | Mint on behalf of user (backend-signed) | Configurable (default: Yes) |
+| `GET` | `/api/analytics/prompts` | Get paginated list of customer prompts | Configurable (default: Yes) |
+| `GET` | `/api/analytics/time-series` | Get time-based analytics for prompts | Configurable (default: Yes) |
+| `GET` | `/api/analytics/stats` | Get overall statistics for customer prompts | Configurable (default: Yes) |
 
 ### Mint Prompt
 
@@ -571,6 +574,144 @@ Backend → Blockchain (backend signs & pays gas) → Rewards user address
 - Company pays all gas fees
 - User doesn't prove ownership
 - Requires strong backend access control
+
+---
+
+### Analytics & Statistics
+
+The boilerplate provides analytics endpoints to track and monitor your prompt minting activity through the PZERO gateway.
+
+**Authentication**: Analytics endpoints require API key authentication by default (configurable via `PM_REQUIRE_AUTH_READ`). Include your API key in the `x-api-key` header.
+
+#### Get Customer Prompts (Paginated)
+
+**Endpoint**: `GET /api/analytics/prompts`
+
+**Query Parameters**:
+- `page` (number): Page number (default: 1)
+- `limit` (number): Items per page (default: 50, max: 100)
+- `chainId` (string, optional): Filter by chain ID
+
+**Example**:
+```bash
+curl -H "x-api-key: your-api-key" \
+  http://localhost:3000/api/analytics/prompts?page=1&limit=50&chainId=72080
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "prompts": [
+      {
+        "id": "...",
+        "promptHash": "0x...",
+        "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
+        "activityPoints": "10",
+        "chainId": "72080",
+        "transactionHash": "0x...",
+        "createdAt": "2025-11-19T10:00:00Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 50,
+      "total": 150,
+      "totalPages": 3
+    }
+  }
+}
+```
+
+---
+
+#### Get Time-Based Analytics
+
+**Endpoint**: `GET /api/analytics/time-series`
+
+**Query Parameters**:
+- `period` (required): `'day'` | `'week'` | `'month'`
+- `date` (optional): ISO date string (YYYY-MM-DD, defaults to current period)
+
+**Example**:
+```bash
+# Current week analytics
+curl -H "x-api-key: your-api-key" \
+  http://localhost:3000/api/analytics/time-series?period=week
+
+# Specific day analytics
+curl -H "x-api-key: your-api-key" \
+  http://localhost:3000/api/analytics/time-series?period=day&date=2025-11-19
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "period": "week",
+    "dateRange": {
+      "start": "2025-11-13",
+      "end": "2025-11-19"
+    },
+    "data": [
+      {
+        "date": "2025-11-13",
+        "count": 25,
+        "totalActivityPoints": "250"
+      },
+      {
+        "date": "2025-11-14",
+        "count": 30,
+        "totalActivityPoints": "300"
+      }
+    ],
+    "summary": {
+      "totalPrompts": 175,
+      "totalActivityPoints": "1750"
+    }
+  }
+}
+```
+
+---
+
+#### Get Overall Statistics
+
+**Endpoint**: `GET /api/analytics/stats`
+
+**Example**:
+```bash
+curl -H "x-api-key: your-api-key" \
+  http://localhost:3000/api/analytics/stats
+```
+
+**Response**:
+```json
+{
+  "success": true,
+  "data": {
+    "totalPrompts": 1500,
+    "totalActivityPoints": "15000",
+    "uniqueAuthors": 342,
+    "byChain": [
+      {
+        "chainId": "72080",
+        "count": 1200,
+        "totalActivityPoints": "12000"
+      },
+      {
+        "chainId": "7208",
+        "count": 300,
+        "totalActivityPoints": "3000"
+      }
+    ],
+    "firstPromptAt": "2025-01-01T00:00:00Z",
+    "lastPromptAt": "2025-11-19T10:00:00Z"
+  }
+}
+```
 
 ---
 
