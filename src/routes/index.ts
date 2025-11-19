@@ -2,6 +2,7 @@ import { Router } from 'express';
 import healthRoutes from './health';
 import promptRoutes from './prompts';
 import activityPointsRoutes from './activityPoints';
+import analyticsRoutes from './analytics';
 import { asyncHandler } from '../middleware/errorHandler';
 import * as promptController from '../controllers/promptController';
 import { conditionalAuth } from '../middleware/auth';
@@ -16,6 +17,7 @@ import { config } from '../config';
  * - /health - Health check endpoint (no auth required)
  * - /api/prompts - Prompt minting and management (configurable auth)
  * - /api/activity-points - Activity points balance queries (configurable auth)
+ * - /api/analytics - Customer analytics and statistics (configurable auth)
  * - /api/quota - PZERO quota status (configurable auth)
  *
  * @example
@@ -30,6 +32,7 @@ router.use('/health', healthRoutes);
 // API routes
 router.use('/api/prompts', promptRoutes);
 router.use('/api/activity-points', activityPointsRoutes);
+router.use('/api/analytics', analyticsRoutes);
 
 // Quota endpoint - useful for monitoring PZERO usage
 router.get(
