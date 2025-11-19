@@ -1,6 +1,14 @@
 import axios, { AxiosInstance, AxiosError } from 'axios';
 import { config } from '../config';
-import { PZeroAuthorization, PZeroMintAuthRequest, PZeroErrorCode } from '../types';
+import {
+  PZeroAuthorization,
+  PZeroMintAuthRequest,
+  PZeroErrorCode,
+  PZeroPromptsResponse,
+  PZeroAnalyticsResponse,
+  PZeroStatsResponse,
+  AnalyticsPeriod,
+} from '../types';
 
 /**
  * Custom error class for PZERO authorization errors.
@@ -264,5 +272,89 @@ export async function checkPZeroHealth(): Promise<boolean> {
     return response.data.status === 'healthy';
   } catch (error) {
     return false;
+  }
+}
+
+// ============================================================================
+// PZERO Analytics Functions
+// ============================================================================
+
+/**
+ * Gets paginated list of customer's prompts from PZERO.
+ *
+ * @param page - Page number (default: 1)
+ * @param limit - Items per page (default: 50, max: 100)
+ * @param chainId - Optional filter by chain ID
+ * @returns Paginated prompts data
+ *
+ * @example
+ * const prompts = await getCustomerPrompts(1, 50, '72080');
+ * console.log(`Total prompts: ${prompts.pagination.total}`);
+ */
+export async function getCustomerPrompts(
+  page: number = 1,
+  limit: number = 50,
+  chainId?: string
+): Promise<PZeroPromptsResponse> {
+  try {
+    const params: any = { page, limit };
+    if (chainId) {
+      params.chainId = chainId;
+    }
+
+    const response = await pzeroClient.get('/customer/prompts', { params });
+    return response.data;
+  } catch (error) {
+    handlePZeroApiError(error);
+  }
+}
+
+/**
+ * Gets time-based analytics for customer's prompts from PZERO.
+ *
+ * @param period - Time period: 'day', 'week', or 'month'
+ * @param date - Optional ISO date string (defaults to current period)
+ * @returns Analytics data for the specified period
+ *
+ * @example
+ * // Get analytics for the current week
+ * const analytics = await getCustomerAnalytics('week');
+ *
+ * // Get analytics for a specific day
+ * const dayAnalytics = await getCustomerAnalytics('day', '2025-11-19');
+ */
+export async function getCustomerAnalytics(
+  period: AnalyticsPeriod,
+  date?: string
+): Promise<PZeroAnalyticsResponse> {
+  try {
+    const params: any = { period };
+    if (date) {
+      params.date = date;
+    }
+
+    const response = await pzeroClient.get('/customer/prompts/analytics', { params });
+    return response.data;
+  } catch (error) {
+    handlePZeroApiError(error);
+  }
+}
+
+/**
+ * Gets overall statistics for customer's prompts from PZERO.
+ *
+ * @returns Overall statistics including total prompts, activity points, and breakdown by chain
+ *
+ * @example
+ * const stats = await getCustomerStats();
+ * console.log(`Total prompts: ${stats.totalPrompts}`);
+ * console.log(`Total activity points: ${stats.totalActivityPoints}`);
+ */
+export async function getCustomerStats(): Promise<PZeroStatsResponse> {
+  try {
+    const response = await pzeroClient.get('/customer/stats');
+    return response.data;
+  } catch (error) {
+    handlePZeroApiError(error);
   }
 }
