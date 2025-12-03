@@ -29,8 +29,6 @@ export interface MintPromptRequest {
   prompt: string;
   /** Ethereum address of the prompt author */
   author: string;
-  /** Amount of activity points to reward (in wei or ether string) */
-  activityPoints: string;
 }
 
 /**
@@ -53,8 +51,6 @@ export interface PromptAuthorizationResponse {
     prompt: string;
     /** Author's Ethereum address */
     author: string;
-    /** Activity points to reward */
-    activityPoints: string;
   };
 }
 

@@ -60,7 +60,6 @@ export async function authorizePromptMint(
   mintData: {
     prompt: string;
     author: string;
-    activityPoints: string;
   };
 }> {
   console.log('=== User-Signed Authorization Flow ===');
@@ -88,7 +87,6 @@ export async function authorizePromptMint(
     mintData: {
       prompt, // Full prompt returned so frontend can include in transaction
       author,
-      activityPoints,
     },
   };
 }

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as promptMiningService from '../services/promptMiningService';
 import { isValidAddress, isValidHash } from '../utils/crypto';
+import { calculateReward } from '../utils/rewardCalculation';
 import { ApiResponse } from '../types';
 
 /**
@@ -23,7 +24,7 @@ import { ApiResponse } from '../types';
  * @param res - Express response
  */
 export async function authorizePromptMint(req: Request, res: Response): Promise<void> {
-  const { prompt, author, activityPoints } = req.body;
+  const { prompt, author } = req.body;
 
   // Validate required fields
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -48,16 +49,8 @@ export async function authorizePromptMint(req: Request, res: Response): Promise<
     return;
   }
 
-  if (!activityPoints || isNaN(parseFloat(activityPoints))) {
-    res.status(400).json({
-      success: false,
-      error: {
-        code: 'INVALID_ACTIVITY_POINTS',
-        message: 'Activity points must be a valid number',
-      },
-    });
-    return;
-  }
+  // Calculate reward based on prompt and author
+  const activityPoints = calculateReward(prompt.trim(), author);
 
   // Call service layer to get authorization
   const result = await promptMiningService.authorizePromptMint(
@@ -88,7 +81,7 @@ export async function authorizePromptMint(req: Request, res: Response): Promise<
  * @param res - Express response
  */
 export async function getSignableMintData(req: Request, res: Response): Promise<void> {
-  const { prompt, author, activityPoints, gas, deadline } = req.body;
+  const { prompt, author, gas, deadline } = req.body;
 
   // Validate required fields
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -113,16 +106,8 @@ export async function getSignableMintData(req: Request, res: Response): Promise<
     return;
   }
 
-  if (!activityPoints || isNaN(parseFloat(activityPoints))) {
-    res.status(400).json({
-      success: false,
-      error: {
-        code: 'INVALID_ACTIVITY_POINTS',
-        message: 'Activity points must be a valid number',
-      },
-    });
-    return;
-  }
+  // Calculate reward based on prompt and author
+  const activityPoints = calculateReward(prompt.trim(), author);
 
   // Optional: validate gas if provided
   const gasLimit = gas ? BigInt(gas) : undefined;
@@ -332,7 +317,7 @@ export async function executeMetaTx(req: Request, res: Response): Promise<void> 
  * @param res - Express response
  */
 export async function mintPromptForUser(req: Request, res: Response): Promise<void> {
-  const { prompt, author, activityPoints } = req.body;
+  const { prompt, author } = req.body;
 
   // Validate required fields
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -357,16 +342,8 @@ export async function mintPromptForUser(req: Request, res: Response): Promise<vo
     return;
   }
 
-  if (!activityPoints || isNaN(parseFloat(activityPoints))) {
-    res.status(400).json({
-      success: false,
-      error: {
-        code: 'INVALID_ACTIVITY_POINTS',
-        message: 'Activity points must be a valid number',
-      },
-    });
-    return;
-  }
+  // Calculate reward based on prompt and author
+  const activityPoints = calculateReward(prompt.trim(), author);
 
   // Call service layer
   const result = await promptMiningService.mintPromptForUser(prompt.trim(), author, activityPoints);
