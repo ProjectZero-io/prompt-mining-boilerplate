@@ -1,3 +1,4 @@
+import { ethers } from 'ethers';
 import * as pzeroAuthService from './pzeroAuthService';
 import * as blockchainService from './blockchainService';
 import { hashPrompt, encodeActivityPoints } from '../utils/crypto';
@@ -61,6 +62,11 @@ export async function authorizePromptMint(
     prompt: string;
     author: string;
   };
+  transaction: {
+    to: string;
+    data: string;
+    value: string;
+  };
 }> {
   console.log('=== User-Signed Authorization Flow ===');
 
@@ -77,6 +83,24 @@ export async function authorizePromptMint(
     config.contracts.promptMiner
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
+  
+  // Step 3: Encode activity points
+  const encodedPoints = encodeActivityPoints(activityPoints);
+  console.log(`3. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
+
+  // Step 4: Build transaction data for mint(bytes32 prompt, string calldata contentURI, bytes calldata actionData, bytes calldata actionSignature)
+  const contract = new ethers.Interface([
+    'function mint(bytes32 prompt, string calldata contentURI, bytes calldata actionData, bytes calldata actionSignature) external'
+  ]);
+  
+  const txData = contract.encodeFunctionData('mint', [
+    promptHash,           // bytes32 prompt
+    '',                   // string contentURI (empty for now)
+    encodedPoints,        // bytes actionData (encoded activity points)
+    authorization.signature // bytes actionSignature (PZERO authorization)
+  ]);
+  
+  console.log(`4. Encoded transaction data: ${txData.slice(0, 10)}...`);
   console.log('=== Returning authorization to frontend ===\n');
 
   return {
@@ -87,6 +111,11 @@ export async function authorizePromptMint(
     mintData: {
       prompt, // Full prompt returned so frontend can include in transaction
       author,
+    },
+    transaction: {
+      to: config.contracts.promptMiner,
+      data: txData,
+      value: '0',
     },
   };
 }

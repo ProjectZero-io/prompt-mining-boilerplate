@@ -46,6 +46,11 @@ const router = Router();
  *     "mintData": {
  *       "prompt": "What is artificial intelligence?",
  *       "author": "0x..."
+ *     },
+ *     "transaction": {
+ *       "to": "0x2a8094B1021990989c7C17A983fa533DDC142a64",
+ *       "data": "0x...",
+ *       "value": "0"
  *     }
  *   }
  * }

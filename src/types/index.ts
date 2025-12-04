@@ -52,6 +52,15 @@ export interface PromptAuthorizationResponse {
     /** Author's Ethereum address */
     author: string;
   };
+  /** Transaction data ready to be sent to the blockchain */
+  transaction: {
+    /** Contract address to send the transaction to */
+    to: string;
+    /** Encoded function call data */
+    data: string;
+    /** Value to send with transaction (always '0' for minting) */
+    value: string;
+  };
 }
 
 /**
