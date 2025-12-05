@@ -379,9 +379,14 @@ There are **three ways** to mint prompts depending on your use case:
 {
   "prompt": "What is artificial intelligence?",
   "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
-  "activityPoints": "10"
+  "activityPoints": "30000000000000000000"
 }
 ```
+
+**Notes:**
+- `activityPoints` is optional. If not provided, backend calculates the reward amount.
+- `activityPoints` must be in wei (e.g., `"30000000000000000000"` = 30 tokens with 18 decimals).
+- Accepts `"0"` as valid amount.
 
 **Response** (user signs this with Metamask):
 ```json
@@ -411,9 +416,14 @@ There are **three ways** to mint prompts depending on your use case:
 {
   "prompt": "What is artificial intelligence?",
   "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
-  "activityPoints": "10"
+  "activityPoints": "30000000000000000000"
 }
 ```
+
+**Notes:**
+- `activityPoints` is optional. If not provided, backend calculates the reward amount.
+- `activityPoints` must be in wei (e.g., `"30000000000000000000"` = 30 tokens with 18 decimals).
+- Accepts `"0"` as valid amount.
 
 **Response** (user signs with Metamask):
 ```json
@@ -465,9 +475,14 @@ There are **three ways** to mint prompts depending on your use case:
 {
   "prompt": "What is artificial intelligence?",
   "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
-  "activityPoints": "10"
+  "activityPoints": "30000000000000000000"
 }
 ```
+
+**Notes:**
+- `activityPoints` is optional. If not provided, backend calculates the reward amount.
+- `activityPoints` must be in wei (e.g., `"30000000000000000000"` = 30 tokens with 18 decimals).
+- Accepts `"0"` as valid amount.
 
 **Response**:
 ```json

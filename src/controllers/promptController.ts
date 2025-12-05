@@ -24,7 +24,7 @@ import { ApiResponse } from '../types';
  * @param res - Express response
  */
 export async function authorizePromptMint(req: Request, res: Response): Promise<void> {
-  const { prompt, author } = req.body;
+  const { prompt, author, activityPoints: providedActivityPoints } = req.body;
 
   // Validate required fields
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -49,8 +49,10 @@ export async function authorizePromptMint(req: Request, res: Response): Promise<
     return;
   }
 
-  // Calculate reward based on prompt and author
-  const activityPoints = calculateReward(prompt.trim(), author);
+  // Use provided activityPoints (in wei) or calculate based on prompt and author
+  const activityPoints = providedActivityPoints !== undefined 
+    ? providedActivityPoints 
+    : calculateReward(prompt.trim(), author);
 
   // Call service layer to get authorization
   const result = await promptMiningService.authorizePromptMint(
@@ -81,7 +83,7 @@ export async function authorizePromptMint(req: Request, res: Response): Promise<
  * @param res - Express response
  */
 export async function getSignableMintData(req: Request, res: Response): Promise<void> {
-  const { prompt, author, gas, deadline } = req.body;
+  const { prompt, author, activityPoints: providedActivityPoints, gas, deadline } = req.body;
 
   // Validate required fields
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -106,8 +108,10 @@ export async function getSignableMintData(req: Request, res: Response): Promise<
     return;
   }
 
-  // Calculate reward based on prompt and author
-  const activityPoints = calculateReward(prompt.trim(), author);
+  // Use provided activityPoints (in wei) or calculate based on prompt and author
+  const activityPoints = providedActivityPoints !== undefined 
+    ? providedActivityPoints 
+    : calculateReward(prompt.trim(), author);
 
   // Optional: validate gas if provided
   const gasLimit = gas ? BigInt(gas) : undefined;
@@ -317,7 +321,7 @@ export async function executeMetaTx(req: Request, res: Response): Promise<void> 
  * @param res - Express response
  */
 export async function mintPromptForUser(req: Request, res: Response): Promise<void> {
-  const { prompt, author } = req.body;
+  const { prompt, author, activityPoints: providedActivityPoints } = req.body;
 
   // Validate required fields
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -342,8 +346,10 @@ export async function mintPromptForUser(req: Request, res: Response): Promise<vo
     return;
   }
 
-  // Calculate reward based on prompt and author
-  const activityPoints = calculateReward(prompt.trim(), author);
+  // Use provided activityPoints (in wei) or calculate based on prompt and author
+  const activityPoints = providedActivityPoints !== undefined 
+    ? providedActivityPoints 
+    : calculateReward(prompt.trim(), author);
 
   // Call service layer
   const result = await promptMiningService.mintPromptForUser(prompt.trim(), author, activityPoints);

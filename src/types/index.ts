@@ -29,6 +29,8 @@ export interface MintPromptRequest {
   prompt: string;
   /** Ethereum address of the prompt author */
   author: string;
+  /** Amount of activity points to reward (optional, calculated if not provided) */
+  activityPoints?: string;
 }
 
 /**
