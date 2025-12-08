@@ -221,7 +221,7 @@ router.post(
  * x-api-key: your-api-key
  *
  * {
- *   "prompt": "What is artificial intelligence?\",
+ *   "prompt": "What is artificial intelligence?",
  *   "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1"
  * }
  *
