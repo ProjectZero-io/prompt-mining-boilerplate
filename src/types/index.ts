@@ -29,8 +29,8 @@ export interface MintPromptRequest {
   prompt: string;
   /** Ethereum address of the prompt author */
   author: string;
-  /** Amount of activity points to reward (in wei or ether string) */
-  activityPoints: string;
+  /** Amount of activity points to reward (optional, calculated if not provided) */
+  activityPoints?: string;
 }
 
 /**
@@ -53,8 +53,15 @@ export interface PromptAuthorizationResponse {
     prompt: string;
     /** Author's Ethereum address */
     author: string;
-    /** Activity points to reward */
-    activityPoints: string;
+  };
+  /** Transaction data ready to be sent to the blockchain */
+  transaction: {
+    /** Contract address to send the transaction to */
+    to: string;
+    /** Encoded function call data */
+    data: string;
+    /** Value to send with transaction (always '0' for minting) */
+    value: string;
   };
 }
 
@@ -182,4 +189,113 @@ export interface PZeroQuota {
   tier: string;
   /** Unix timestamp when quota resets */
   resetAt: number;
+}
+
+// ============================================================================
+// PZERO Analytics Types
+// ============================================================================
+
+/**
+ * Prompt data from PZERO customer prompts endpoint.
+ */
+export interface PZeroPrompt {
+  /** Unique identifier for the prompt */
+  id: string;
+  /** Keccak256 hash of the prompt */
+  promptHash: string;
+  /** Ethereum address of the prompt author */
+  author: string;
+  /** Amount of activity points rewarded */
+  activityPoints: string;
+  /** Blockchain chain ID where prompt was minted */
+  chainId: string;
+  /** Transaction hash of the mint operation */
+  transactionHash?: string;
+  /** Timestamp when prompt was minted */
+  createdAt: string;
+}
+
+/**
+ * Paginated response for customer prompts.
+ */
+export interface PZeroPromptsResponse {
+  /** Array of prompts */
+  prompts: PZeroPrompt[];
+  /** Pagination metadata */
+  pagination: {
+    /** Current page number */
+    page: number;
+    /** Items per page */
+    limit: number;
+    /** Total number of prompts */
+    total: number;
+    /** Total number of pages */
+    totalPages: number;
+  };
+}
+
+/**
+ * Time period for analytics queries.
+ */
+export type AnalyticsPeriod = 'day' | 'week' | 'month';
+
+/**
+ * Analytics data point for a specific time period.
+ */
+export interface AnalyticsDataPoint {
+  /** Date label for this data point */
+  date: string;
+  /** Number of prompts minted in this period */
+  count: number;
+  /** Total activity points distributed in this period */
+  totalActivityPoints: string;
+}
+
+/**
+ * Time-based analytics response from PZERO.
+ */
+export interface PZeroAnalyticsResponse {
+  /** The time period analyzed */
+  period: AnalyticsPeriod;
+  /** Date range for the analytics */
+  dateRange: {
+    /** Start date (ISO string) */
+    start: string;
+    /** End date (ISO string) */
+    end: string;
+  };
+  /** Analytics data points */
+  data: AnalyticsDataPoint[];
+  /** Summary statistics */
+  summary: {
+    /** Total prompts in this period */
+    totalPrompts: number;
+    /** Total activity points distributed */
+    totalActivityPoints: string;
+  };
+}
+
+/**
+ * Overall statistics for customer prompts from PZERO.
+ */
+export interface PZeroStatsResponse {
+  /** Total number of prompts minted */
+  totalPrompts: number;
+  /** Total activity points distributed across all prompts */
+  totalActivityPoints: string;
+  /** Number of unique authors */
+  uniqueAuthors: number;
+  /** Breakdown by chain ID */
+  byChain: Array<{
+    /** Chain ID */
+    chainId: string;
+    /** Number of prompts on this chain */
+    count: number;
+    /** Total activity points on this chain */
+    totalActivityPoints: string;
+  }>;
+  /** First prompt timestamp */
+  firstPromptAt?: string;
+  /** Most recent prompt timestamp */
+  lastPromptAt?: string;
 }

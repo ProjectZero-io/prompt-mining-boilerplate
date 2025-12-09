@@ -32,8 +32,7 @@ const router = Router();
  *
  * {
  *   "prompt": "What is artificial intelligence?",
- *   "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
- *   "activityPoints": "10"
+ *   "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1"
  * }
  *
  * Response:
@@ -46,8 +45,12 @@ const router = Router();
  *     },
  *     "mintData": {
  *       "prompt": "What is artificial intelligence?",
- *       "author": "0x...",
- *       "activityPoints": "10"
+ *       "author": "0x..."
+ *     },
+ *     "transaction": {
+ *       "to": "0x2a8094B1021990989c7C17A983fa533DDC142a64",
+ *       "data": "0x...",
+ *       "value": "0"
  *     }
  *   }
  * }
@@ -71,7 +74,6 @@ router.post(
  * @param {object} req.body - Meta-transaction request data
  * @param {string} req.body.prompt - The prompt text
  * @param {string} req.body.author - Ethereum address of the author
- * @param {string} req.body.activityPoints - Activity points amount
  * @param {string} [req.body.gas] - Optional gas limit (default: 500000)
  * @param {string} [req.body.deadline] - Optional deadline timestamp (default: 1 hour from now)
  * @returns {object} Typed data for EIP-712 signing
@@ -90,7 +92,6 @@ router.post(
  * {
  *   "prompt": "What is artificial intelligence?",
  *   "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
- *   "activityPoints": "10",
  *   "gas": "500000",
  *   "deadline": "1735401600"
  * }
@@ -206,7 +207,6 @@ router.post(
  * @param {object} req.body - Mint request data
  * @param {string} req.body.prompt - The prompt text
  * @param {string} req.body.author - Ethereum address that will receive Activity Points
- * @param {string} req.body.activityPoints - Activity points amount
  * @returns {object} Transaction receipt and mint details
  *
  * @throws {400} If request validation fails
@@ -222,8 +222,7 @@ router.post(
  *
  * {
  *   "prompt": "What is artificial intelligence?",
- *   "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
- *   "activityPoints": "10"
+ *   "author": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1"
  * }
  *
  * Response:
