@@ -149,6 +149,8 @@ export interface PZeroMintAuthRequest {
   chainId: string;
   /** Request timestamp (Unix milliseconds) */
   timestamp: number;
+  /** Ethereum address of the PromptMiner contract */
+  promptMinerAddress: string;
 }
 
 /**

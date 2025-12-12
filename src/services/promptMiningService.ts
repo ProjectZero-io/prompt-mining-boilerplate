@@ -80,6 +80,7 @@ export async function authorizePromptMint(
     promptHash,
     author,
     activityPoints,
+    config.contracts.promptMiner,
     config.contracts.promptMiner
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
@@ -269,6 +270,7 @@ export async function getSignableMintData(
     promptHash,
     author,
     String(activityPoints),
+    config.contracts.promptMiner,
     config.contracts.promptMiner
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
@@ -430,6 +432,7 @@ export async function mintPromptForUser(
     promptHash,
     author,
     activityPoints,
+    config.contracts.promptMiner,
     config.contracts.promptMiner
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
