@@ -206,7 +206,6 @@ Get these credentials at **[pm-gateway.projectzero.io/register](https://pm-gatew
 | `PM_RPC_URL` | Blockchain RPC endpoint | **Yes** | `https://rpc.nexera.network` |
 | `PM_CHAIN_ID` | Blockchain chain ID | **Yes** | `7208` (mainnet), `72080` (testnet) |
 | `PM_PROMPT_MINER_ADDRESS` | PromptMiner contract address | **Yes** | `0x...` |
-| `PM_ACTIVITY_POINTS_ADDRESS` | ActivityPoints contract address | **Yes** | `0x...` |
 | `PM_PROMPT_DO_ADDRESS` | PromptDO contract address | **Yes** | `0x...` |
 | `PM_DATA_INDEX_ADDRESS` | DataIndex contract address | **Yes** | `0x...` |
 | `PM_PRIVATE_KEY` | Wallet private key for signing | **No**, depends on SPONSORED | `0x...` (NEVER commit!) |
@@ -351,7 +350,7 @@ Authentication requirements per endpoint are configurable via environment variab
 | Method | Endpoint | Description | Auth Required |
 |--------|----------|-------------|---------------|
 | `GET` | `/health` | Health check endpoint | No |
-| `GET` | `/api/activity-points/:address` | Get activity points balance for an address | Configurable (default: No) |
+| `GET` | `/api/activity-points/:tokenAddress/:address` | Get activity points balance for an address from a specific token | Configurable (default: No) |
 | `GET` | `/api/prompts/:hash` | Check if prompt is minted | Configurable (default: No) |
 | `POST` | `/api/prompts/authorize` | Get PZERO authorization for user-signed mint | Configurable (default: Yes) |
 | `POST` | `/api/prompts/signable-mint-data` | Get EIP-712 typed data for meta-transaction | Configurable (default: Yes) |
