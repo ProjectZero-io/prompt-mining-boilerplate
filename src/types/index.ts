@@ -29,8 +29,8 @@ export interface MintPromptRequest {
   prompt: string;
   /** Ethereum address of the prompt author */
   author: string;
-  /** Amount of activity points to reward (optional, calculated if not provided) */
-  activityPoints?: string;
+  /** Amount of activity points to reward (optional, calculated if not provided) - can be a single value or array */
+  activityPoints?: string | string[];
 }
 
 /**
@@ -143,8 +143,8 @@ export interface PZeroMintAuthRequest {
   signerAddress: string;
   /** Ethereum address of the prompt author */
   author: string;
-  /** Amount of activity points to reward */
-  activityPoints: string;
+  /** Amount of activity points to reward - can be a single value or array */
+  activityPoints: string | string[];
   /** Blockchain chain ID */
   chainId: string;
   /** Request timestamp (Unix milliseconds) */

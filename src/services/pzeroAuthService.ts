@@ -197,7 +197,7 @@ function handlePZeroApiError(error: unknown): never {
 export async function requestMintAuthorization(
   promptHash: string,
   author: string,
-  activityPoints: string,
+  activityPoints: string | string[],
   signerAddress: string,
   promptMinerAddress: string
 ): Promise<PZeroAuthorization> {
