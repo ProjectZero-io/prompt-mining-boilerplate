@@ -86,7 +86,7 @@ export async function authorizePromptMint(
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
   
   // Step 3: Encode activity points
-  const encodedPoints = encodeActivityPoints(Array.isArray(activityPoints) ? activityPoints[0] : activityPoints);
+  const encodedPoints = encodeActivityPoints(activityPoints);
   console.log(`3. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
 
   // Step 4: Build transaction data for mint(bytes32 prompt, string calldata contentURI, bytes calldata actionData, bytes calldata actionSignature)
@@ -261,7 +261,7 @@ export async function getSignableMintData(
   console.log(`1. Hashed prompt locally: ${promptHash.slice(0, 10)}...`);
 
   // Step 2: Encode activity points
-  const encodedPoints = encodeActivityPoints(Array.isArray(activityPoints) ? activityPoints[0] : activityPoints);
+  const encodedPoints = encodeActivityPoints(activityPoints);
   console.log(`2. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
 
   // Step 3: Request PZERO authorization (hash only!)
@@ -423,7 +423,7 @@ export async function mintPromptForUser(
   console.log(`2. Prompt not yet minted, proceeding...`);
 
   // Step 3: Encode activity points
-  const encodedPoints = encodeActivityPoints(Array.isArray(activityPoints) ? activityPoints[0] : activityPoints);
+  const encodedPoints = encodeActivityPoints(activityPoints);
   console.log(`3. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
 
   // Step 4: Request PZERO authorization (hash only!)
