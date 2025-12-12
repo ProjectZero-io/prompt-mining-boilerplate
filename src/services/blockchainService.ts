@@ -6,7 +6,6 @@ import {
 } from '@project_zero/prompt-mining-sdk';
 import type {
   PromptMinerWithActivityPointsActionUpgradeableType,
-  ActivityPointsType,
 } from '@project_zero/prompt-mining-sdk';
 import { config } from '../config';
 
@@ -21,7 +20,6 @@ let wallet: ethers.Wallet | null = null;
  * SDK contract instances.
  */
 let promptMinerContract: PromptMinerWithActivityPointsActionUpgradeableType | null = null;
-let activityPointsContract: ActivityPointsType | null = null;
 
 /**
  * Initializes blockchain provider and wallet.
@@ -74,22 +72,6 @@ function getPromptMinerContract(): PromptMinerWithActivityPointsActionUpgradeabl
 }
 
 /**
- * Gets or initializes ActivityPoints contract instance.
- *
- * @returns ActivityPoints contract connected to provider
- */
-function getActivityPointsContract(): ActivityPointsType {
-  if (!activityPointsContract) {
-    activityPointsContract = contractFactories.ActivityPoints.connect(
-      config.contracts.activityPoints
-    );
-  }
-
-  const { wallet: w } = initializeBlockchain();
-  return activityPointsContract.connect(w);
-}
-
-/**
  * Checks if a prompt has been minted.
  *
  * This is a read-only operation that queries the PromptMiner contract.
@@ -113,21 +95,23 @@ export async function checkPromptMinted(promptHash: string): Promise<boolean> {
 }
 
 /**
- * Gets activity points balance for an address.
+ * Gets activity points balance for an address from a specific token contract.
  *
+ * @param tokenAddress - Activity token contract address
  * @param address - Ethereum address to check
  * @returns Balance information (wei and ether)
  *
  * @example
- * const balance = await getActivityPointsBalance("0x...");
+ * const balance = await getActivityPointsBalance("0x...", "0x...");
  * console.log(`Balance: ${balance.ether} points`);
  */
-export async function getActivityPointsBalance(address: string): Promise<{
+export async function getActivityPointsBalance(tokenAddress: string, address: string): Promise<{
   wei: string;
   ether: string;
   symbol: string;
 }> {
-  const contract = getActivityPointsContract();
+  const { wallet: w } = initializeBlockchain();
+  const contract = contractFactories.ActivityPoints.connect(tokenAddress).connect(w);
 
   try {
     const [balance, symbol] = await Promise.all([contract.balanceOf(address), contract.symbol()]);

@@ -146,19 +146,20 @@ export async function getPromptStatus(promptOrHash: string): Promise<PromptStatu
 }
 
 /**
- * Gets activity points balance for an address.
+ * Gets activity points balance for an address from a specific token contract.
  *
  * This is a read-only operation that doesn't require PZERO authorization.
  *
+ * @param tokenAddress - Activity token contract address
  * @param address - Ethereum address to check
  * @returns Balance information
  *
  * @example
- * const balance = await getUserBalance("0x...");
+ * const balance = await getUserBalance("0x...", "0x...");
  * console.log(`Balance: ${balance.balanceEther} ${balance.symbol}`);
  */
-export async function getUserBalance(address: string): Promise<ActivityPointsBalanceResponse> {
-  const balance = await blockchainService.getActivityPointsBalance(address);
+export async function getUserBalance(tokenAddress: string, address: string): Promise<ActivityPointsBalanceResponse> {
+  const balance = await blockchainService.getActivityPointsBalance(tokenAddress, address);
 
   return {
     address,

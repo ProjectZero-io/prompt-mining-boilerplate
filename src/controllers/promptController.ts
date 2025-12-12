@@ -407,9 +407,21 @@ export async function getPromptStatus(req: Request, res: Response): Promise<void
  * @param res - Express response
  */
 export async function getBalance(req: Request, res: Response): Promise<void> {
-  const { address } = req.params;
+  const { tokenAddress, address } = req.params;
 
-  // Validate address
+  // Validate token address
+  if (!tokenAddress || !isValidAddress(tokenAddress)) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_TOKEN_ADDRESS',
+        message: 'Invalid activity token contract address',
+      },
+    });
+    return;
+  }
+
+  // Validate user address
   if (!address || !isValidAddress(address)) {
     res.status(400).json({
       success: false,
@@ -422,7 +434,7 @@ export async function getBalance(req: Request, res: Response): Promise<void> {
   }
 
   // Call service layer
-  const result = await promptMiningService.getUserBalance(address);
+  const result = await promptMiningService.getUserBalance(tokenAddress, address);
 
   // Return success response
   const response: ApiResponse = {

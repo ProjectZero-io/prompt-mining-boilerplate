@@ -19,7 +19,6 @@ interface Config {
   };
   contracts: {
     promptMiner: string;
-    activityPoints: string;
   };
   pzero: {
     apiKey: string;
@@ -128,10 +127,6 @@ export const config: Config = {
     promptMiner: validateAddress(
       'PM_PROMPT_MINER_ADDRESS',
       requireEnv('PM_PROMPT_MINER_ADDRESS', process.env.PM_PROMPT_MINER_ADDRESS)
-    ),
-    activityPoints: validateAddress(
-      'PM_ACTIVITY_POINTS_ADDRESS',
-      requireEnv('PM_ACTIVITY_POINTS_ADDRESS', process.env.PM_ACTIVITY_POINTS_ADDRESS)
     ),
   },
 
