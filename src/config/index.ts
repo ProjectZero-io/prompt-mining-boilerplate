@@ -37,6 +37,9 @@ interface Config {
     maxRequests: number;
     skipAuthenticatedUsers: boolean;
   };
+  rewards: {
+    useMultiRewards: boolean;
+  };
 }
 
 /**
@@ -148,6 +151,10 @@ export const config: Config = {
     windowMs: parseInt(process.env.PM_RATE_LIMIT_WINDOW_MS || '900000', 10), // 15 min default
     maxRequests: parseInt(process.env.PM_RATE_LIMIT_MAX_REQUESTS || '100', 10),
     skipAuthenticatedUsers: parseBoolean(process.env.PM_RATE_LIMIT_SKIP_AUTHENTICATED, false),
+  },
+
+  rewards: {
+    useMultiRewards: parseBoolean(process.env.PM_USE_MULTI_REWARDS, false),
   },
 };
 
