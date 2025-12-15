@@ -38,7 +38,7 @@ interface Config {
     skipAuthenticatedUsers: boolean;
   };
   rewards: {
-    useMultiRewards: boolean;
+    rewardValuesCount: number;
   };
 }
 
@@ -154,7 +154,7 @@ export const config: Config = {
   },
 
   rewards: {
-    useMultiRewards: parseBoolean(process.env.PM_USE_MULTI_REWARDS, false),
+    rewardValuesCount: parseInt(process.env.PM_REWARD_VALUES_COUNT || '0', 10),
   },
 };
 
