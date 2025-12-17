@@ -22,14 +22,7 @@ interface Config {
   server: {
     port: number;
   };
-  blockchain: {
-    rpcUrl: string;
-    chainId: string;
-    privateKey: string;
-  };
-  contracts: {
-    promptMiner: string;
-  };
+  privateKey: string;
   chains: ChainConfig[];
   pzero: {
     apiKey: string;
@@ -176,18 +169,7 @@ export const config: Config = {
     port: parseInt(process.env.PM_PORT || '3000', 10),
   },
 
-  blockchain: {
-    rpcUrl: requireEnv('PM_RPC_URL', process.env.PM_RPC_URL),
-    chainId: requireEnv('PM_CHAIN_ID', process.env.PM_CHAIN_ID),
-    privateKey: requireEnv('PM_PRIVATE_KEY', process.env.PM_PRIVATE_KEY),
-  },
-
-  contracts: {
-    promptMiner: validateAddress(
-      'PM_PROMPT_MINER_ADDRESS',
-      requireEnv('PM_PROMPT_MINER_ADDRESS', process.env.PM_PROMPT_MINER_ADDRESS)
-    ),
-  },
+  privateKey: requireEnv('PM_PRIVATE_KEY', process.env.PM_PRIVATE_KEY),
 
   chains: parseChains(process.env.PM_CHAINS),
 
@@ -225,6 +207,13 @@ export const config: Config = {
  * @throws {Error} If configuration is invalid
  */
 export const validateConfig = (): void => {
+  // Validate chains configuration is provided
+  if (config.chains.length === 0) {
+    throw new Error(
+      'PM_CHAINS is required. Please provide at least one chain configuration as a JSON array.'
+    );
+  }
+
   // Validate PZERO API key format
   if (!config.pzero.apiKey.startsWith('pzero_')) {
     throw new Error(
@@ -240,18 +229,12 @@ export const validateConfig = (): void => {
   }
 
   // Validate private key format
-  if (!config.blockchain.privateKey.startsWith('0x')) {
+  if (!config.privateKey.startsWith('0x')) {
     throw new Error('PM_PRIVATE_KEY must start with 0x');
   }
 
-  if (config.blockchain.privateKey.length !== 66) {
+  if (config.privateKey.length !== 66) {
     throw new Error('PM_PRIVATE_KEY must be 66 characters (including 0x prefix)');
-  }
-
-  // Validate chain ID is a number
-  const chainIdNum = parseInt(config.blockchain.chainId, 10);
-  if (isNaN(chainIdNum)) {
-    throw new Error('PM_CHAIN_ID must be a valid number');
   }
 
   // Validate port is in valid range
@@ -267,6 +250,10 @@ export const validateConfig = (): void => {
   }
 
   console.log('Configuration validated successfully');
+  console.log(`Configured ${config.chains.length} chain(s):`);
+  config.chains.forEach(chain => {
+    console.log(`  - ${chain.name} (chainId: ${chain.chainId})`);
+  });
 };
 
 /**
@@ -282,23 +269,8 @@ export const validateConfig = (): void => {
  * }
  */
 export const getChainConfig = (chainId: string): ChainConfig | null => {
-  // If multi-chain is configured, look up the chain
-  if (config.chains.length > 0) {
-    const chain = config.chains.find(c => c.chainId === chainId);
-    return chain || null;
-  }
-
-  // Fallback to single-chain config if it matches
-  if (config.blockchain.chainId === chainId) {
-    return {
-      name: `Chain ${chainId}`,
-      rpcUrl: config.blockchain.rpcUrl,
-      chainId: config.blockchain.chainId,
-      promptMinerAddress: config.contracts.promptMiner,
-    };
-  }
-
-  return null;
+  const chain = config.chains.find(c => c.chainId === chainId);
+  return chain || null;
 };
 
 /**
@@ -307,16 +279,8 @@ export const getChainConfig = (chainId: string): ChainConfig | null => {
  * @returns Default chain configuration
  */
 export const getDefaultChainConfig = (): ChainConfig => {
-  // If multi-chain is configured, return the first chain
-  if (config.chains.length > 0) {
-    return config.chains[0];
+  if (config.chains.length === 0) {
+    throw new Error('No chains configured. Please set PM_CHAINS environment variable.');
   }
-
-  // Fallback to single-chain config
-  return {
-    name: `Chain ${config.blockchain.chainId}`,
-    rpcUrl: config.blockchain.rpcUrl,
-    chainId: config.blockchain.chainId,
-    promptMinerAddress: config.contracts.promptMiner,
-  };
+  return config.chains[0];
 };
