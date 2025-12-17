@@ -24,7 +24,7 @@ import { ApiResponse } from '../types';
  * @param res - Express response
  */
 export async function authorizePromptMint(req: Request, res: Response): Promise<void> {
-  const { prompt, author, activityPoints: providedActivityPoints } = req.body;
+  const { prompt, author, activityPoints: providedActivityPoints, chainId } = req.body;
 
   // Validate required fields
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -58,7 +58,8 @@ export async function authorizePromptMint(req: Request, res: Response): Promise<
   const result = await promptMiningService.authorizePromptMint(
     prompt.trim(),
     author,
-    activityPoints
+    activityPoints,
+    chainId
   );
 
   // Return authorization response
@@ -83,7 +84,7 @@ export async function authorizePromptMint(req: Request, res: Response): Promise<
  * @param res - Express response
  */
 export async function getSignableMintData(req: Request, res: Response): Promise<void> {
-  const { prompt, author, activityPoints: providedActivityPoints, gas, deadline } = req.body;
+  const { prompt, author, activityPoints: providedActivityPoints, gas, deadline, chainId } = req.body;
 
   // Validate required fields
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -125,7 +126,8 @@ export async function getSignableMintData(req: Request, res: Response): Promise<
     author,
     activityPoints,
     gasLimit,
-    metaTxDeadline
+    metaTxDeadline,
+    chainId
   );
 
   // Convert BigInt values to strings for JSON serialization
@@ -321,7 +323,7 @@ export async function executeMetaTx(req: Request, res: Response): Promise<void> 
  * @param res - Express response
  */
 export async function mintPromptForUser(req: Request, res: Response): Promise<void> {
-  const { prompt, author, activityPoints: providedActivityPoints } = req.body;
+  const { prompt, author, activityPoints: providedActivityPoints, chainId } = req.body;
 
   // Validate required fields
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -352,7 +354,7 @@ export async function mintPromptForUser(req: Request, res: Response): Promise<vo
     : calculateReward(prompt.trim(), author);
 
   // Call service layer
-  const result = await promptMiningService.mintPromptForUser(prompt.trim(), author, activityPoints);
+  const result = await promptMiningService.mintPromptForUser(prompt.trim(), author, activityPoints, chainId);
 
   // Return success response
   const response: ApiResponse = {

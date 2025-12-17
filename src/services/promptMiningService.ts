@@ -3,7 +3,7 @@ import * as pzeroAuthService from './pzeroAuthService';
 import * as blockchainService from './blockchainService';
 import { hashPrompt, encodeActivityPoints } from '../utils/crypto';
 import { PromptStatusResponse, ActivityPointsBalanceResponse } from '../types';
-import { config } from '../config';
+import { config, getChainConfig, getDefaultChainConfig } from '../config';
 import { ERC2771_FORWARD_REQUEST_TYPES } from '@project_zero/prompt-mining-sdk';
 
 /**
@@ -52,7 +52,8 @@ import { ERC2771_FORWARD_REQUEST_TYPES } from '@project_zero/prompt-mining-sdk';
 export async function authorizePromptMint(
   prompt: string,
   author: string,
-  activityPoints: string | string[]
+  activityPoints: string | string[],
+  chainId?: string
 ): Promise<{
   promptHash: string;
   authorization: {
@@ -70,6 +71,13 @@ export async function authorizePromptMint(
 }> {
   console.log('=== User-Signed Authorization Flow ===');
 
+  // Get chain configuration
+  const chain = chainId ? getChainConfig(chainId) : getDefaultChainConfig();
+  if (!chain) {
+    throw new Error(`Chain configuration not found for chainId: ${chainId}`);
+  }
+  console.log(`Using chain: ${chain.name} (${chain.chainId})`);
+
   // Step 1: Hash prompt locally
   const promptHash = hashPrompt(prompt);
   console.log(`1. Hashed prompt locally: ${promptHash.slice(0, 10)}...`);
@@ -81,7 +89,7 @@ export async function authorizePromptMint(
     author,
     activityPoints,
     config.contracts.promptMiner,
-    config.contracts.promptMiner
+    chain.promptMinerAddress
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
   
@@ -114,7 +122,7 @@ export async function authorizePromptMint(
       author,
     },
     transaction: {
-      to: config.contracts.promptMiner,
+      to: chain.promptMinerAddress,
       data: txData,
       value: '0',
     },
@@ -228,7 +236,8 @@ export async function getSignableMintData(
   author: string,
   activityPoints: string | string[],
   gas: bigint = 500000n,
-  deadline?: bigint
+  deadline?: bigint,
+  chainId?: string
 ): Promise<{
   promptHash: string;
   domain: {
@@ -253,6 +262,13 @@ export async function getSignableMintData(
 }> {
   console.log('=== Meta-Transaction Signable Data Flow ===');
 
+  // Get chain configuration
+  const chain = chainId ? getChainConfig(chainId) : getDefaultChainConfig();
+  if (!chain) {
+    throw new Error(`Chain configuration not found for chainId: ${chainId}`);
+  }
+  console.log(`Using chain: ${chain.name} (${chain.chainId})`);
+
   // Set default deadline to 1 hour from now if not provided
   const metaTxDeadline = deadline ?? BigInt(Math.floor(Date.now() / 1000) + 3600);
 
@@ -271,7 +287,7 @@ export async function getSignableMintData(
     author,
     activityPoints,
     config.contracts.promptMiner,
-    config.contracts.promptMiner
+    chain.promptMinerAddress
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
 
@@ -400,7 +416,8 @@ export async function executeMetaTxMint(
 export async function mintPromptForUser(
   prompt: string,
   author: string,
-  activityPoints: string | string[]
+  activityPoints: string | string[],
+  chainId?: string
 ): Promise<{
   transactionHash: string;
   promptHash: string;
@@ -409,6 +426,13 @@ export async function mintPromptForUser(
 }> {
   console.log('=== Backend-Signed Mint Flow ===');
   console.log(`Minting prompt for author: ${author}`);
+
+  // Get chain configuration
+  const chain = chainId ? getChainConfig(chainId) : getDefaultChainConfig();
+  if (!chain) {
+    throw new Error(`Chain configuration not found for chainId: ${chainId}`);
+  }
+  console.log(`Using chain: ${chain.name} (${chain.chainId})`);
 
   // Step 1: Hash prompt locally
   const promptHash = hashPrompt(prompt);
@@ -433,7 +457,7 @@ export async function mintPromptForUser(
     author,
     activityPoints,
     config.contracts.promptMiner,
-    config.contracts.promptMiner
+    chain.promptMinerAddress
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
 
