@@ -31,6 +31,8 @@ export interface MintPromptRequest {
   author: string;
   /** Amount of activity points to reward (optional, calculated if not provided) - can be a single value or array */
   activityPoints?: string | string[];
+  /** Chain ID to use (optional, uses default chain if not provided) */
+  chainId?: string;
 }
 
 /**

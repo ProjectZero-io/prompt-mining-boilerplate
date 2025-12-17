@@ -5,6 +5,16 @@ import { ethers } from 'ethers';
 dotenv.config();
 
 /**
+ * Chain configuration for multi-chain support.
+ */
+export interface ChainConfig {
+  name: string;
+  rpcUrl: string;
+  chainId: string;
+  promptMinerAddress: string;
+}
+
+/**
  * Configuration interface for type-safe access to environment variables.
  */
 interface Config {
@@ -20,6 +30,7 @@ interface Config {
   contracts: {
     promptMiner: string;
   };
+  chains: ChainConfig[];
   pzero: {
     apiKey: string;
     apiUrl: string;
@@ -101,6 +112,51 @@ const parseApiKeys = (value: string | undefined): string[] => {
 };
 
 /**
+ * Parses the multi-chain configuration from JSON.
+ *
+ * @param value - JSON string with chain configurations
+ * @returns Array of chain configurations
+ */
+const parseChains = (value: string | undefined): ChainConfig[] => {
+  if (!value || value.trim() === '') {
+    return [];
+  }
+
+  try {
+    const chains = JSON.parse(value) as ChainConfig[];
+    
+    // Validate each chain configuration
+    chains.forEach((chain, index) => {
+      if (!chain.name || typeof chain.name !== 'string') {
+        throw new Error(`Chain at index ${index}: 'name' is required and must be a string`);
+      }
+      if (!chain.rpcUrl || typeof chain.rpcUrl !== 'string') {
+        throw new Error(`Chain at index ${index}: 'rpcUrl' is required and must be a string`);
+      }
+      if (!chain.chainId || typeof chain.chainId !== 'string') {
+        throw new Error(`Chain at index ${index}: 'chainId' is required and must be a string`);
+      }
+      if (!chain.promptMinerAddress || typeof chain.promptMinerAddress !== 'string') {
+        throw new Error(`Chain at index ${index}: 'promptMinerAddress' is required and must be a string`);
+      }
+      // Validate promptMinerAddress is a valid Ethereum address
+      if (!ethers.isAddress(chain.promptMinerAddress)) {
+        throw new Error(`Chain at index ${index}: 'promptMinerAddress' is not a valid Ethereum address`);
+      }
+      // Checksum the address
+      chain.promptMinerAddress = ethers.getAddress(chain.promptMinerAddress);
+    });
+
+    return chains;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error(`PM_CHAINS is not valid JSON: ${error.message}`);
+    }
+    throw error;
+  }
+};
+
+/**
  * Application configuration object.
  *
  * Loads and validates all environment variables at startup.
@@ -132,6 +188,8 @@ export const config: Config = {
       requireEnv('PM_PROMPT_MINER_ADDRESS', process.env.PM_PROMPT_MINER_ADDRESS)
     ),
   },
+
+  chains: parseChains(process.env.PM_CHAINS),
 
   pzero: {
     apiKey: requireEnv('PM_PZERO_API_KEY', process.env.PM_PZERO_API_KEY),
@@ -209,4 +267,56 @@ export const validateConfig = (): void => {
   }
 
   console.log('Configuration validated successfully');
+};
+
+/**
+ * Gets chain configuration by chainId.
+ *
+ * @param chainId - The chain ID to look up
+ * @returns Chain configuration or null if not found
+ *
+ * @example
+ * const chain = getChainConfig('97');
+ * if (chain) {
+ *   console.log(`Using ${chain.name}`);
+ * }
+ */
+export const getChainConfig = (chainId: string): ChainConfig | null => {
+  // If multi-chain is configured, look up the chain
+  if (config.chains.length > 0) {
+    const chain = config.chains.find(c => c.chainId === chainId);
+    return chain || null;
+  }
+
+  // Fallback to single-chain config if it matches
+  if (config.blockchain.chainId === chainId) {
+    return {
+      name: `Chain ${chainId}`,
+      rpcUrl: config.blockchain.rpcUrl,
+      chainId: config.blockchain.chainId,
+      promptMinerAddress: config.contracts.promptMiner,
+    };
+  }
+
+  return null;
+};
+
+/**
+ * Gets the default chain configuration.
+ *
+ * @returns Default chain configuration
+ */
+export const getDefaultChainConfig = (): ChainConfig => {
+  // If multi-chain is configured, return the first chain
+  if (config.chains.length > 0) {
+    return config.chains[0];
+  }
+
+  // Fallback to single-chain config
+  return {
+    name: `Chain ${config.blockchain.chainId}`,
+    rpcUrl: config.blockchain.rpcUrl,
+    chainId: config.blockchain.chainId,
+    promptMinerAddress: config.contracts.promptMiner,
+  };
 };
