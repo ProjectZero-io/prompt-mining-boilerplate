@@ -1,6 +1,6 @@
 import { Router, Request, Response } from 'express';
 import { ethers } from 'ethers';
-import { config } from '../config';
+import { getDefaultChainConfig } from '../config';
 import { ApiResponse, HealthCheckResponse } from '../types';
 import { asyncHandler } from '../middleware/errorHandler';
 
@@ -39,7 +39,8 @@ router.get(
 
     // Check blockchain connection
     try {
-      const provider = new ethers.JsonRpcProvider(config.blockchain.rpcUrl);
+      const chain = getDefaultChainConfig();
+      const provider = new ethers.JsonRpcProvider(chain.rpcUrl);
       const network = await provider.getNetwork();
       chainId = network.chainId.toString();
       blockNumber = await provider.getBlockNumber();
