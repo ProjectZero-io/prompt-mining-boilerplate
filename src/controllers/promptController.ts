@@ -177,7 +177,7 @@ export async function getSignableMintData(req: Request, res: Response): Promise<
  * @param res - Express response
  */
 export async function executeMetaTx(req: Request, res: Response): Promise<void> {
-  const { requestForSigning, forwardSignature } = req.body;
+  const { requestForSigning, forwardSignature, chainId } = req.body;
 
   // Validate requestForSigning
   if (!requestForSigning || typeof requestForSigning !== 'object') {
@@ -299,7 +299,7 @@ export async function executeMetaTx(req: Request, res: Response): Promise<void> 
   };
 
   // Call service layer
-  const result = await promptMiningService.executeMetaTxMint(request, forwardSignature);
+  const result = await promptMiningService.executeMetaTxMint(request, forwardSignature, chainId);
 
   // Return success response
   const response: ApiResponse = {
@@ -375,6 +375,7 @@ export async function mintPromptForUser(req: Request, res: Response): Promise<vo
  */
 export async function getPromptStatus(req: Request, res: Response): Promise<void> {
   const { hash } = req.params;
+  const { chainId } = req.query;
 
   // Validate hash format
   if (!hash || !isValidHash(hash)) {
@@ -389,7 +390,7 @@ export async function getPromptStatus(req: Request, res: Response): Promise<void
   }
 
   // Call service layer
-  const result = await promptMiningService.getPromptStatus(hash);
+  const result = await promptMiningService.getPromptStatus(hash, chainId as string | undefined);
 
   // Return success response
   const response: ApiResponse = {
@@ -435,8 +436,10 @@ export async function getBalance(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  const { chainId } = req.query;
+
   // Call service layer
-  const result = await promptMiningService.getUserBalance(tokenAddress, address);
+  const result = await promptMiningService.getUserBalance(tokenAddress, address, chainId as string | undefined);
 
   // Return success response
   const response: ApiResponse = {
