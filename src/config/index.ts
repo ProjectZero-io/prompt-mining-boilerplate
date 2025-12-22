@@ -61,21 +61,6 @@ const requireEnv = (name: string, value: string | undefined): string => {
 };
 
 /**
- * Validates an Ethereum address.
- *
- * @param name - Environment variable name
- * @param address - Ethereum address to validate
- * @throws {Error} If address is invalid
- * @returns Checksummed Ethereum address
- */
-const validateAddress = (name: string, address: string): string => {
-  if (!ethers.isAddress(address)) {
-    throw new Error(`Invalid Ethereum address for ${name}: ${address}`);
-  }
-  return ethers.getAddress(address); // Return checksummed address
-};
-
-/**
  * Parses a boolean environment variable.
  *
  * @param value - String value from environment
