@@ -198,6 +198,7 @@ export async function requestMintAuthorization(
   promptHash: string,
   author: string,
   activityPoints: string | string[],
+  chainId: string,
   signerAddress: string,
   promptMinerAddress: string
 ): Promise<PZeroAuthorization> {
@@ -206,7 +207,7 @@ export async function requestMintAuthorization(
     author,
     activityPoints,
     signerAddress,
-    chainId: config.blockchain.chainId,
+    chainId,
     timestamp: Date.now(),
     promptMinerAddress,
   };
