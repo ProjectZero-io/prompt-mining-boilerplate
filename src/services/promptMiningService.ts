@@ -3,7 +3,7 @@ import * as pzeroAuthService from './pzeroAuthService';
 import * as blockchainService from './blockchainService';
 import { hashPrompt, encodeActivityPoints } from '../utils/crypto';
 import { PromptStatusResponse, ActivityPointsBalanceResponse } from '../types';
-import { config, getChainConfig, getDefaultChainConfig } from '../config';
+import { getChainConfig, getDefaultChainConfig } from '../config';
 import { ERC2771_FORWARD_REQUEST_TYPES } from '@project_zero/prompt-mining-sdk';
 
 /**
@@ -84,11 +84,13 @@ export async function authorizePromptMint(
 
   // Step 2: Request PZERO authorization (hash only!)
   console.log(`2. Requesting PZERO authorization (hash only)...`);
+  const { wallet } = blockchainService.initializeBlockchain(chainId);
   const authorization = await pzeroAuthService.requestMintAuthorization(
     promptHash,
     author,
     activityPoints,
-    config.contracts.promptMiner,
+    chain.chainId,
+    wallet.address,
     chain.promptMinerAddress
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
@@ -135,18 +137,19 @@ export async function authorizePromptMint(
  * This is a read-only operation that doesn't require PZERO authorization.
  *
  * @param promptOrHash - Either full prompt text or prompt hash
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
  * @returns Prompt status
  *
  * @example
- * const status = await getPromptStatus("0x1234...");
+ * const status = await getPromptStatus("0x1234...", '56');
  * console.log('Is minted:', status.isMinted);
  */
-export async function getPromptStatus(promptOrHash: string): Promise<PromptStatusResponse> {
+export async function getPromptStatus(promptOrHash: string, chainId?: string): Promise<PromptStatusResponse> {
   // If input looks like a hash (0x...), use it directly
   // Otherwise, hash it first
   const promptHash = promptOrHash.startsWith('0x') ? promptOrHash : hashPrompt(promptOrHash);
 
-  const isMinted = await blockchainService.checkPromptMinted(promptHash);
+  const isMinted = await blockchainService.checkPromptMinted(promptHash, chainId);
 
   return {
     promptHash,
@@ -161,14 +164,15 @@ export async function getPromptStatus(promptOrHash: string): Promise<PromptStatu
  *
  * @param tokenAddress - Activity token contract address
  * @param address - Ethereum address to check
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
  * @returns Balance information
  *
  * @example
- * const balance = await getUserBalance("0x...", "0x...");
+ * const balance = await getUserBalance("0x...", "0x...", '56');
  * console.log(`Balance: ${balance.balanceEther} ${balance.symbol}`);
  */
-export async function getUserBalance(tokenAddress: string, address: string): Promise<ActivityPointsBalanceResponse> {
-  const balance = await blockchainService.getActivityPointsBalance(tokenAddress, address);
+export async function getUserBalance(tokenAddress: string, address: string, chainId?: string): Promise<ActivityPointsBalanceResponse> {
+  const balance = await blockchainService.getActivityPointsBalance(tokenAddress, address, chainId);
 
   return {
     address,
@@ -282,11 +286,13 @@ export async function getSignableMintData(
 
   // Step 3: Request PZERO authorization (hash only!)
   console.log(`3. Requesting PZERO authorization (hash only)...`);
+  const { wallet } = blockchainService.initializeBlockchain(chainId);
   const authorization = await pzeroAuthService.requestMintAuthorization(
     promptHash,
     author,
     activityPoints,
-    config.contracts.promptMiner,
+    chain.chainId,
+    wallet.address,
     chain.promptMinerAddress
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
@@ -299,7 +305,8 @@ export async function getSignableMintData(
     metaTxDeadline,
     promptHash,
     encodedPoints,
-    authorization.signature
+    authorization.signature,
+    chainId
   );
   console.log(`   Typed data prepared for signing`);
 
@@ -360,7 +367,8 @@ export async function executeMetaTxMint(
     deadline: bigint;
     data: string;
   },
-  forwardSignature: string
+  forwardSignature: string,
+  chainId?: string
 ): Promise<{
   transactionHash: string;
   blockNumber: number;
@@ -370,7 +378,7 @@ export async function executeMetaTxMint(
   console.log('=== Meta-Transaction Execution Flow ===');
   console.log(`Relayer executing meta-transaction for user: ${requestForSigning.from}`);
 
-  const receipt = await blockchainService.executeMetaTxMint(requestForSigning, forwardSignature);
+  const receipt = await blockchainService.executeMetaTxMint(requestForSigning, forwardSignature, chainId);
 
   console.log(`   Meta-transaction executed! Tx: ${receipt.hash}`);
   console.log('=== Meta-Transaction Complete ===\n');
@@ -439,7 +447,7 @@ export async function mintPromptForUser(
   console.log(`1. Hashed prompt locally: ${promptHash.slice(0, 10)}...`);
 
   // Step 2: Check if prompt is already minted
-  const isMinted = await blockchainService.checkPromptMinted(promptHash);
+  const isMinted = await blockchainService.checkPromptMinted(promptHash, chainId);
   if (isMinted) {
     console.log(`   Prompt already minted! Hash: ${promptHash}`);
     throw new Error(`Prompt has already been minted. Prompt hash: ${promptHash}`);
@@ -452,11 +460,13 @@ export async function mintPromptForUser(
 
   // Step 4: Request PZERO authorization (hash only!)
   console.log(`4. Requesting PZERO authorization (hash only)...`);
+  const { wallet } = blockchainService.initializeBlockchain(chainId);
   const authorization = await pzeroAuthService.requestMintAuthorization(
     promptHash,
     author,
     activityPoints,
-    config.contracts.promptMiner,
+    chain.chainId,
+    wallet.address,
     chain.promptMinerAddress
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
@@ -468,7 +478,8 @@ export async function mintPromptForUser(
     promptHash, // Prompt hash
     '', // Content URI (empty for now)
     encodedPoints, // Encoded activity points
-    authorization.signature // PZERO authorization
+    authorization.signature, // PZERO authorization
+    chainId
   );
   console.log(`   Minted! Tx: ${receipt.hash}`);
 
