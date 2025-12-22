@@ -67,7 +67,10 @@ const server = app.listen(config.server.port, () => {
   console.log('═══════════════════════════════════════════════════');
   console.log(`Environment:    ${config.env}`);
   console.log(`Server:         http://${host}:${config.server.port}`);
-  console.log(`Chain ID:       ${config.blockchain.chainId}`);
+  console.log(`Chains:         ${config.chains.length} configured`);
+  config.chains.forEach((chain, index) => {
+    console.log(`  ${index + 1}. ${chain.name} (${chain.chainId})`);
+  });
   console.log('═══════════════════════════════════════════════════');
   console.log('\nAvailable endpoints:');
   console.log('  GET  /health                           - Health check');
