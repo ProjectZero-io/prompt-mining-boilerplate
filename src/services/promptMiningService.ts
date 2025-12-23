@@ -456,7 +456,7 @@ export async function mintPromptForUser(
 
   // Step 3: Encode activity points
   const encodedPoints = encodeActivityPoints(activityPoints);
-  console.log(`3. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
+  console.log(`3. Encoded activity points: ${encodedPoints}`);
 
   // Step 4: Request PZERO authorization (hash only!)
   console.log(`4. Requesting PZERO authorization (hash only)...`);

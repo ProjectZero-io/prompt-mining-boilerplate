@@ -44,12 +44,15 @@ export function hashPrompt(prompt: string): string {
 export function encodeActivityPoints(points: string | string[]): string {
   // Handle array of points
   if (Array.isArray(points)) {
+    console.log("Encoding points as an array")
     const pointsWei = points.map(p => BigInt(p));
     
     // ABI encode as uint256[]
     return ethers.AbiCoder.defaultAbiCoder().encode(['uint256[]'], [pointsWei]);
   }
   
+  console.log("Encoding points as a single value");
+
   // Handle single point value
   const pointsWei = BigInt(points);
 
