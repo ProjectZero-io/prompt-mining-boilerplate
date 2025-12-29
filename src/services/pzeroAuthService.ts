@@ -197,19 +197,17 @@ function handlePZeroApiError(error: unknown): never {
 export async function requestMintAuthorization(
   promptHash: string,
   author: string,
-  activityPoints: string | string[],
+  encodedActivityPoints: string,
   chainId: string,
-  signerAddress: string,
-  promptMinerAddress: string
+  signerAddress: string // The PromptMiner contract address
 ): Promise<PZeroAuthorization> {
   const requestBody: PZeroMintAuthRequest = {
     promptHash, // ONLY hash, never full prompt
     author,
-    activityPoints,
-    signerAddress,
+    encodedActivityPoints,
+    signerAddress, // PromptMiner contract address
     chainId,
     timestamp: Date.now(),
-    promptMinerAddress,
   };
 
   try {
