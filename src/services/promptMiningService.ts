@@ -82,23 +82,21 @@ export async function authorizePromptMint(
   const promptHash = hashPrompt(prompt);
   console.log(`1. Hashed prompt locally: ${promptHash.slice(0, 10)}...`);
 
-  // Step 2: Request PZERO authorization (hash only!)
-  console.log(`2. Requesting PZERO authorization (hash only)...`);
-  const { wallet } = blockchainService.initializeBlockchain(chainId);
+  // Step 2: Encode activity points
+  const encodedPoints = encodeActivityPoints(activityPoints);
+  console.log(`2. Encoded activity points: ${encodedPoints}`);
+
+  // Step 3: Request PZERO authorization (hash only!)
+  console.log(`3. Requesting PZERO authorization (hash only)...`);
   const authorization = await pzeroAuthService.requestMintAuthorization(
     promptHash,
     author,
-    activityPoints,
+    encodedPoints,
     chain.chainId,
-    wallet.address,
     chain.promptMinerAddress
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
   
-  // Step 3: Encode activity points
-  const encodedPoints = encodeActivityPoints(activityPoints);
-  console.log(`3. Encoded activity points: ${encodedPoints.slice(0, 10)}...`);
-
   // Step 4: Build transaction data for mint(bytes32 prompt, string calldata contentURI, bytes calldata actionData, bytes calldata actionSignature)
   const contract = new ethers.Interface([
     'function mint(bytes32 prompt, string calldata contentURI, bytes calldata actionData, bytes calldata actionSignature) external'
@@ -286,13 +284,11 @@ export async function getSignableMintData(
 
   // Step 3: Request PZERO authorization (hash only!)
   console.log(`3. Requesting PZERO authorization (hash only)...`);
-  const { wallet } = blockchainService.initializeBlockchain(chainId);
   const authorization = await pzeroAuthService.requestMintAuthorization(
     promptHash,
     author,
-    activityPoints,
+    encodedPoints,
     chain.chainId,
-    wallet.address,
     chain.promptMinerAddress
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
@@ -460,13 +456,11 @@ export async function mintPromptForUser(
 
   // Step 4: Request PZERO authorization (hash only!)
   console.log(`4. Requesting PZERO authorization (hash only)...`);
-  const { wallet } = blockchainService.initializeBlockchain(chainId);
   const authorization = await pzeroAuthService.requestMintAuthorization(
     promptHash,
     author,
-    activityPoints,
+    encodedPoints,
     chain.chainId,
-    wallet.address,
     chain.promptMinerAddress
   );
   console.log(`   Authorization received: ${authorization.signature.slice(0, 10)}...`);
