@@ -204,7 +204,7 @@ export async function requestMintAuthorization(
   const requestBody: PZeroMintAuthRequest = {
     promptHash, // ONLY hash, never full prompt
     author,
-    encodedActivityPoints,
+    activityPoints: encodedActivityPoints, // Send encoded data as 'activityPoints' to match API expectation
     signerAddress, // PromptMiner contract address
     chainId,
     timestamp: Date.now(),

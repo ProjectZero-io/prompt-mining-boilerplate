@@ -145,8 +145,8 @@ export interface PZeroMintAuthRequest {
   signerAddress: string;
   /** Ethereum address of the prompt author */
   author: string;
-  /** ABI-encoded activity points (bytes/hex string) */
-  encodedActivityPoints: string;
+  /** ABI-encoded activity points (bytes/hex string) - sent as 'activityPoints' to API */
+  activityPoints: string;
   /** Blockchain chain ID */
   chainId: string;
   /** Request timestamp (Unix milliseconds) */
