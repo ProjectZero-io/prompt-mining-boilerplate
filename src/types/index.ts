@@ -141,18 +141,16 @@ export interface HealthCheckResponse {
 export interface PZeroMintAuthRequest {
   /** Keccak256 hash of the prompt (NOT the full prompt!) */
   promptHash: string;
-  /** Ethereum address of the contract signer */
+  /** Ethereum address of the PromptMiner contract (the signer) */
   signerAddress: string;
   /** Ethereum address of the prompt author */
   author: string;
-  /** Amount of activity points to reward - can be a single value or array */
-  activityPoints: string | string[];
+  /** ABI-encoded activity points (bytes/hex string) */
+  encodedActivityPoints: string;
   /** Blockchain chain ID */
   chainId: string;
   /** Request timestamp (Unix milliseconds) */
   timestamp: number;
-  /** Ethereum address of the PromptMiner contract */
-  promptMinerAddress: string;
 }
 
 /**
