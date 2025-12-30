@@ -60,11 +60,13 @@ function getPromptMinerContract(chainId?: string): PromptMinerWithActivityPoints
     throw new Error(`Chain configuration not found for chainId: ${chainId}`);
   }
   
+  // Create a fresh contract instance connected to the specific wallet/provider
   const contract = contractFactories.PromptMinerWithActivityPoints.connect(
-    chain.promptMinerAddress
+    chain.promptMinerAddress,
+    wallet // Pass wallet directly to connect method
   );
 
-  return contract.connect(wallet);
+  return contract;
 }
 
 /**
