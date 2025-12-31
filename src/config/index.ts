@@ -5,6 +5,16 @@ import { ethers } from 'ethers';
 dotenv.config();
 
 /**
+ * Chain configuration for multi-chain support.
+ */
+export interface ChainConfig {
+  name: string;
+  rpcUrl: string;
+  chainId: string;
+  promptMinerAddress: string;
+}
+
+/**
  * Configuration interface for type-safe access to environment variables.
  */
 interface Config {
@@ -12,15 +22,8 @@ interface Config {
   server: {
     port: number;
   };
-  blockchain: {
-    rpcUrl: string;
-    chainId: string;
-    privateKey: string;
-  };
-  contracts: {
-    promptMiner: string;
-    activityPoints: string;
-  };
+  privateKey: string;
+  chains: ChainConfig[];
   pzero: {
     apiKey: string;
     apiUrl: string;
@@ -38,6 +41,9 @@ interface Config {
     maxRequests: number;
     skipAuthenticatedUsers: boolean;
   };
+  rewards: {
+    rewardValuesCount: number;
+  };
 }
 
 /**
@@ -52,21 +58,6 @@ const requireEnv = (name: string, value: string | undefined): string => {
     throw new Error(`Missing required environment variable: ${name}`);
   }
   return value;
-};
-
-/**
- * Validates an Ethereum address.
- *
- * @param name - Environment variable name
- * @param address - Ethereum address to validate
- * @throws {Error} If address is invalid
- * @returns Checksummed Ethereum address
- */
-const validateAddress = (name: string, address: string): string => {
-  if (!ethers.isAddress(address)) {
-    throw new Error(`Invalid Ethereum address for ${name}: ${address}`);
-  }
-  return ethers.getAddress(address); // Return checksummed address
 };
 
 /**
@@ -99,6 +90,51 @@ const parseApiKeys = (value: string | undefined): string[] => {
 };
 
 /**
+ * Parses the multi-chain configuration from JSON.
+ *
+ * @param value - JSON string with chain configurations
+ * @returns Array of chain configurations
+ */
+const parseChains = (value: string | undefined): ChainConfig[] => {
+  if (!value || value.trim() === '') {
+    return [];
+  }
+
+  try {
+    const chains = JSON.parse(value) as ChainConfig[];
+    
+    // Validate each chain configuration
+    chains.forEach((chain, index) => {
+      if (!chain.name || typeof chain.name !== 'string') {
+        throw new Error(`Chain at index ${index}: 'name' is required and must be a string`);
+      }
+      if (!chain.rpcUrl || typeof chain.rpcUrl !== 'string') {
+        throw new Error(`Chain at index ${index}: 'rpcUrl' is required and must be a string`);
+      }
+      if (!chain.chainId || typeof chain.chainId !== 'string') {
+        throw new Error(`Chain at index ${index}: 'chainId' is required and must be a string`);
+      }
+      if (!chain.promptMinerAddress || typeof chain.promptMinerAddress !== 'string') {
+        throw new Error(`Chain at index ${index}: 'promptMinerAddress' is required and must be a string`);
+      }
+      // Validate promptMinerAddress is a valid Ethereum address
+      if (!ethers.isAddress(chain.promptMinerAddress)) {
+        throw new Error(`Chain at index ${index}: 'promptMinerAddress' is not a valid Ethereum address`);
+      }
+      // Checksum the address
+      chain.promptMinerAddress = ethers.getAddress(chain.promptMinerAddress);
+    });
+
+    return chains;
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      throw new Error(`PM_CHAINS is not valid JSON: ${error.message}`);
+    }
+    throw error;
+  }
+};
+
+/**
  * Application configuration object.
  *
  * Loads and validates all environment variables at startup.
@@ -118,22 +154,9 @@ export const config: Config = {
     port: parseInt(process.env.PM_PORT || '3000', 10),
   },
 
-  blockchain: {
-    rpcUrl: requireEnv('PM_RPC_URL', process.env.PM_RPC_URL),
-    chainId: requireEnv('PM_CHAIN_ID', process.env.PM_CHAIN_ID),
-    privateKey: requireEnv('PM_PRIVATE_KEY', process.env.PM_PRIVATE_KEY),
-  },
+  privateKey: requireEnv('PM_PRIVATE_KEY', process.env.PM_PRIVATE_KEY),
 
-  contracts: {
-    promptMiner: validateAddress(
-      'PM_PROMPT_MINER_ADDRESS',
-      requireEnv('PM_PROMPT_MINER_ADDRESS', process.env.PM_PROMPT_MINER_ADDRESS)
-    ),
-    activityPoints: validateAddress(
-      'PM_ACTIVITY_POINTS_ADDRESS',
-      requireEnv('PM_ACTIVITY_POINTS_ADDRESS', process.env.PM_ACTIVITY_POINTS_ADDRESS)
-    ),
-  },
+  chains: parseChains(process.env.PM_CHAINS),
 
   pzero: {
     apiKey: requireEnv('PM_PZERO_API_KEY', process.env.PM_PZERO_API_KEY),
@@ -154,6 +177,10 @@ export const config: Config = {
     maxRequests: parseInt(process.env.PM_RATE_LIMIT_MAX_REQUESTS || '100', 10),
     skipAuthenticatedUsers: parseBoolean(process.env.PM_RATE_LIMIT_SKIP_AUTHENTICATED, false),
   },
+
+  rewards: {
+    rewardValuesCount: parseInt(process.env.PM_REWARD_VALUES_COUNT || '0', 10),
+  },
 };
 
 /**
@@ -165,6 +192,13 @@ export const config: Config = {
  * @throws {Error} If configuration is invalid
  */
 export const validateConfig = (): void => {
+  // Validate chains configuration is provided
+  if (config.chains.length === 0) {
+    throw new Error(
+      'PM_CHAINS is required. Please provide at least one chain configuration as a JSON array.'
+    );
+  }
+
   // Validate PZERO API key format
   if (!config.pzero.apiKey.startsWith('pzero_')) {
     throw new Error(
@@ -180,18 +214,12 @@ export const validateConfig = (): void => {
   }
 
   // Validate private key format
-  if (!config.blockchain.privateKey.startsWith('0x')) {
+  if (!config.privateKey.startsWith('0x')) {
     throw new Error('PM_PRIVATE_KEY must start with 0x');
   }
 
-  if (config.blockchain.privateKey.length !== 66) {
+  if (config.privateKey.length !== 66) {
     throw new Error('PM_PRIVATE_KEY must be 66 characters (including 0x prefix)');
-  }
-
-  // Validate chain ID is a number
-  const chainIdNum = parseInt(config.blockchain.chainId, 10);
-  if (isNaN(chainIdNum)) {
-    throw new Error('PM_CHAIN_ID must be a valid number');
   }
 
   // Validate port is in valid range
@@ -207,4 +235,37 @@ export const validateConfig = (): void => {
   }
 
   console.log('Configuration validated successfully');
+  console.log(`Configured ${config.chains.length} chain(s):`);
+  config.chains.forEach(chain => {
+    console.log(`  - ${chain.name} (chainId: ${chain.chainId})`);
+  });
+};
+
+/**
+ * Gets chain configuration by chainId.
+ *
+ * @param chainId - The chain ID to look up
+ * @returns Chain configuration or null if not found
+ *
+ * @example
+ * const chain = getChainConfig('97');
+ * if (chain) {
+ *   console.log(`Using ${chain.name}`);
+ * }
+ */
+export const getChainConfig = (chainId: string): ChainConfig | null => {
+  const chain = config.chains.find(c => c.chainId === chainId);
+  return chain || null;
+};
+
+/**
+ * Gets the default chain configuration.
+ *
+ * @returns Default chain configuration
+ */
+export const getDefaultChainConfig = (): ChainConfig => {
+  if (config.chains.length === 0) {
+    throw new Error('No chains configured. Please set PM_CHAINS environment variable.');
+  }
+  return config.chains[0];
 };

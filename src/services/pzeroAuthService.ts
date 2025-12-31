@@ -197,15 +197,16 @@ function handlePZeroApiError(error: unknown): never {
 export async function requestMintAuthorization(
   promptHash: string,
   author: string,
-  activityPoints: string,
-  signerAddress: string
+  encodedActivityPoints: string,
+  chainId: string,
+  signerAddress: string // The PromptMiner contract address
 ): Promise<PZeroAuthorization> {
   const requestBody: PZeroMintAuthRequest = {
     promptHash, // ONLY hash, never full prompt
     author,
-    activityPoints,
-    signerAddress,
-    chainId: config.blockchain.chainId,
+    activityPoints: encodedActivityPoints, // Send encoded data as 'activityPoints' to match API expectation
+    signerAddress, // PromptMiner contract address
+    chainId,
     timestamp: Date.now(),
   };
 

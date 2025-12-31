@@ -70,7 +70,6 @@ PM_RPC_URL=https://rpc.nexera.network
 
 # Production Contract Addresses
 PM_PROMPT_MINER_ADDRESS=0xProductionAddress
-PM_ACTIVITY_POINTS_ADDRESS=0xProductionAddress
 PM_PROMPT_DO_ADDRESS=0xProductionAddress
 PM_DATA_INDEX_ADDRESS=0xProductionAddress
 

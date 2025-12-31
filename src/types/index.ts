@@ -29,8 +29,10 @@ export interface MintPromptRequest {
   prompt: string;
   /** Ethereum address of the prompt author */
   author: string;
-  /** Amount of activity points to reward (optional, calculated if not provided) */
-  activityPoints?: string;
+  /** Amount of activity points to reward (optional, calculated if not provided) - can be a single value or array */
+  activityPoints?: string | string[];
+  /** Chain ID to use (optional, uses default chain if not provided) */
+  chainId?: string;
 }
 
 /**
@@ -139,11 +141,11 @@ export interface HealthCheckResponse {
 export interface PZeroMintAuthRequest {
   /** Keccak256 hash of the prompt (NOT the full prompt!) */
   promptHash: string;
-  /** Ethereum address of the contract signer */
+  /** Ethereum address of the PromptMiner contract (the signer) */
   signerAddress: string;
   /** Ethereum address of the prompt author */
   author: string;
-  /** Amount of activity points to reward */
+  /** ABI-encoded activity points (bytes/hex string) - sent as 'activityPoints' to API */
   activityPoints: string;
   /** Blockchain chain ID */
   chainId: string;

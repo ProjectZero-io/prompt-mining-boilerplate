@@ -24,7 +24,7 @@ import { ApiResponse } from '../types';
  * @param res - Express response
  */
 export async function authorizePromptMint(req: Request, res: Response): Promise<void> {
-  const { prompt, author, activityPoints: providedActivityPoints } = req.body;
+  const { prompt, author, activityPoints: providedActivityPoints, chainId } = req.body;
 
   // Validate required fields
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -58,7 +58,8 @@ export async function authorizePromptMint(req: Request, res: Response): Promise<
   const result = await promptMiningService.authorizePromptMint(
     prompt.trim(),
     author,
-    activityPoints
+    activityPoints,
+    chainId
   );
 
   // Return authorization response
@@ -83,7 +84,7 @@ export async function authorizePromptMint(req: Request, res: Response): Promise<
  * @param res - Express response
  */
 export async function getSignableMintData(req: Request, res: Response): Promise<void> {
-  const { prompt, author, activityPoints: providedActivityPoints, gas, deadline } = req.body;
+  const { prompt, author, activityPoints: providedActivityPoints, gas, deadline, chainId } = req.body;
 
   // Validate required fields
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -125,7 +126,8 @@ export async function getSignableMintData(req: Request, res: Response): Promise<
     author,
     activityPoints,
     gasLimit,
-    metaTxDeadline
+    metaTxDeadline,
+    chainId
   );
 
   // Convert BigInt values to strings for JSON serialization
@@ -175,7 +177,7 @@ export async function getSignableMintData(req: Request, res: Response): Promise<
  * @param res - Express response
  */
 export async function executeMetaTx(req: Request, res: Response): Promise<void> {
-  const { requestForSigning, forwardSignature } = req.body;
+  const { requestForSigning, forwardSignature, chainId } = req.body;
 
   // Validate requestForSigning
   if (!requestForSigning || typeof requestForSigning !== 'object') {
@@ -297,7 +299,7 @@ export async function executeMetaTx(req: Request, res: Response): Promise<void> 
   };
 
   // Call service layer
-  const result = await promptMiningService.executeMetaTxMint(request, forwardSignature);
+  const result = await promptMiningService.executeMetaTxMint(request, forwardSignature, chainId);
 
   // Return success response
   const response: ApiResponse = {
@@ -321,7 +323,7 @@ export async function executeMetaTx(req: Request, res: Response): Promise<void> 
  * @param res - Express response
  */
 export async function mintPromptForUser(req: Request, res: Response): Promise<void> {
-  const { prompt, author, activityPoints: providedActivityPoints } = req.body;
+  const { prompt, author, activityPoints: providedActivityPoints, chainId } = req.body;
 
   // Validate required fields
   if (!prompt || typeof prompt !== 'string' || prompt.trim().length === 0) {
@@ -352,7 +354,7 @@ export async function mintPromptForUser(req: Request, res: Response): Promise<vo
     : calculateReward(prompt.trim(), author);
 
   // Call service layer
-  const result = await promptMiningService.mintPromptForUser(prompt.trim(), author, activityPoints);
+  const result = await promptMiningService.mintPromptForUser(prompt.trim(), author, activityPoints, chainId);
 
   // Return success response
   const response: ApiResponse = {
@@ -373,6 +375,7 @@ export async function mintPromptForUser(req: Request, res: Response): Promise<vo
  */
 export async function getPromptStatus(req: Request, res: Response): Promise<void> {
   const { hash } = req.params;
+  const { chainId } = req.query;
 
   // Validate hash format
   if (!hash || !isValidHash(hash)) {
@@ -387,7 +390,7 @@ export async function getPromptStatus(req: Request, res: Response): Promise<void
   }
 
   // Call service layer
-  const result = await promptMiningService.getPromptStatus(hash);
+  const result = await promptMiningService.getPromptStatus(hash, chainId as string | undefined);
 
   // Return success response
   const response: ApiResponse = {
@@ -407,9 +410,21 @@ export async function getPromptStatus(req: Request, res: Response): Promise<void
  * @param res - Express response
  */
 export async function getBalance(req: Request, res: Response): Promise<void> {
-  const { address } = req.params;
+  const { tokenAddress, address } = req.params;
 
-  // Validate address
+  // Validate token address
+  if (!tokenAddress || !isValidAddress(tokenAddress)) {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_TOKEN_ADDRESS',
+        message: 'Invalid activity token contract address',
+      },
+    });
+    return;
+  }
+
+  // Validate user address
   if (!address || !isValidAddress(address)) {
     res.status(400).json({
       success: false,
@@ -421,8 +436,10 @@ export async function getBalance(req: Request, res: Response): Promise<void> {
     return;
   }
 
+  const { chainId } = req.query;
+
   // Call service layer
-  const result = await promptMiningService.getUserBalance(address);
+  const result = await promptMiningService.getUserBalance(tokenAddress, address, chainId as string | undefined);
 
   // Return success response
   const response: ApiResponse = {

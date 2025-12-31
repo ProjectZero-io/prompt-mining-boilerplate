@@ -6,87 +6,67 @@ import {
 } from '@project_zero/prompt-mining-sdk';
 import type {
   PromptMinerWithActivityPointsActionUpgradeableType,
-  ActivityPointsType,
 } from '@project_zero/prompt-mining-sdk';
-import { config } from '../config';
+import { config, getChainConfig, getDefaultChainConfig } from '../config';
 
 /**
- * Blockchain provider and wallet instances.
- * Initialized once and reused for all transactions.
- */
-let provider: ethers.JsonRpcProvider | null = null;
-let wallet: ethers.Wallet | null = null;
-
-/**
- * SDK contract instances.
- */
-let promptMinerContract: PromptMinerWithActivityPointsActionUpgradeableType | null = null;
-let activityPointsContract: ActivityPointsType | null = null;
-
-/**
- * Initializes blockchain provider and wallet.
+ * Initializes blockchain provider and wallet for a specific chain.
  *
- * This function should be called once at application startup.
- * Subsequent calls will return the existing instances.
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
+ * @returns Initialized provider, wallet, and chain config
  *
- * @returns Initialized provider and wallet
- *
- * @throws {Error} If RPC connection fails
+ * @throws {Error} If chain not found or RPC connection fails
  *
  * @example
- * const { provider, wallet } = initializeBlockchain();
+ * const { provider, wallet, chain } = initializeBlockchain('56');
  */
-export function initializeBlockchain(): {
+export function initializeBlockchain(chainId?: string): {
   provider: ethers.JsonRpcProvider;
   wallet: ethers.Wallet;
+  chain: ReturnType<typeof getChainConfig> | ReturnType<typeof getDefaultChainConfig>;
 } {
-  if (provider && wallet) {
-    return { provider, wallet };
+  // Get chain configuration
+  const chain = chainId ? getChainConfig(chainId) : getDefaultChainConfig();
+  
+  if (!chain) {
+    throw new Error(`Chain with ID ${chainId} not found in configuration`);
   }
 
-  // Initialize provider
-  provider = new ethers.JsonRpcProvider(config.blockchain.rpcUrl);
+  // Initialize provider for this chain
+  const provider = new ethers.JsonRpcProvider(chain.rpcUrl);
 
-  // Initialize wallet
-  wallet = new ethers.Wallet(config.blockchain.privateKey, provider);
+  // Initialize wallet with chain's provider
+  const wallet = new ethers.Wallet(config.privateKey, provider);
 
-  console.log(`Blockchain initialized:`);
-  console.log(`- Chain ID: ${config.blockchain.chainId}`);
+  console.log(`Blockchain initialized for ${chain.name}:`);
+  console.log(`- Chain ID: ${chain.chainId}`);
+  console.log(`- RPC: ${chain.rpcUrl}`);
+  console.log(`- PromptMiner: ${chain.promptMinerAddress}`);
   console.log(`- Wallet: ${wallet.address}`);
 
-  return { provider, wallet };
+  return { provider, wallet, chain };
 }
 
 /**
- * Gets or initializes PromptMiner contract instance.
+ * Gets PromptMiner contract instance for a specific chain.
  *
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
  * @returns PromptMiner contract connected to wallet
  */
-function getPromptMinerContract(): PromptMinerWithActivityPointsActionUpgradeableType {
-  if (!promptMinerContract) {
-    promptMinerContract = contractFactories.PromptMinerWithActivityPoints.connect(
-      config.contracts.promptMiner
-    );
+function getPromptMinerContract(chainId?: string): PromptMinerWithActivityPointsActionUpgradeableType {
+  const { wallet, chain } = initializeBlockchain(chainId);
+  
+  if (!chain) {
+    throw new Error(`Chain configuration not found for chainId: ${chainId}`);
   }
+  
+  // Create a fresh contract instance connected to the specific wallet/provider
+  const contract = contractFactories.PromptMinerWithActivityPoints.connect(
+    chain.promptMinerAddress,
+    wallet // Pass wallet directly to connect method
+  );
 
-  const { wallet: w } = initializeBlockchain();
-  return promptMinerContract.connect(w);
-}
-
-/**
- * Gets or initializes ActivityPoints contract instance.
- *
- * @returns ActivityPoints contract connected to provider
- */
-function getActivityPointsContract(): ActivityPointsType {
-  if (!activityPointsContract) {
-    activityPointsContract = contractFactories.ActivityPoints.connect(
-      config.contracts.activityPoints
-    );
-  }
-
-  const { wallet: w } = initializeBlockchain();
-  return activityPointsContract.connect(w);
+  return contract;
 }
 
 /**
@@ -95,13 +75,14 @@ function getActivityPointsContract(): ActivityPointsType {
  * This is a read-only operation that queries the PromptMiner contract.
  *
  * @param promptHash - Keccak256 hash of the prompt
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
  * @returns True if prompt is minted
  *
  * @example
- * const isMinted = await checkPromptMinted(promptHash);
+ * const isMinted = await checkPromptMinted(promptHash, '56');
  */
-export async function checkPromptMinted(promptHash: string): Promise<boolean> {
-  const contract = getPromptMinerContract();
+export async function checkPromptMinted(promptHash: string, chainId?: string): Promise<boolean> {
+  const contract = getPromptMinerContract(chainId);
 
   try {
     const isMinted = await contract.isPromptMinted(promptHash);
@@ -113,21 +94,28 @@ export async function checkPromptMinted(promptHash: string): Promise<boolean> {
 }
 
 /**
- * Gets activity points balance for an address.
+ * Gets activity points balance for an address from a specific token contract.
  *
+ * @param tokenAddress - Activity token contract address
  * @param address - Ethereum address to check
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
  * @returns Balance information (wei and ether)
  *
  * @example
- * const balance = await getActivityPointsBalance("0x...");
+ * const balance = await getActivityPointsBalance("0x...", "0x...", '56');
  * console.log(`Balance: ${balance.ether} points`);
  */
-export async function getActivityPointsBalance(address: string): Promise<{
+export async function getActivityPointsBalance(
+  tokenAddress: string,
+  address: string,
+  chainId?: string
+): Promise<{
   wei: string;
   ether: string;
   symbol: string;
 }> {
-  const contract = getActivityPointsContract();
+  const { wallet } = initializeBlockchain(chainId);
+  const contract = contractFactories.ActivityPoints.connect(tokenAddress).connect(wallet);
 
   try {
     const [balance, symbol] = await Promise.all([contract.balanceOf(address), contract.symbol()]);
@@ -148,27 +136,29 @@ export async function getActivityPointsBalance(address: string): Promise<{
  *
  * Useful for estimating transaction costs.
  *
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
  * @returns Gas price in wei
  */
-export async function getCurrentGasPrice(): Promise<bigint> {
-  const { provider: p } = initializeBlockchain();
-  const feeData = await p.getFeeData();
+export async function getCurrentGasPrice(chainId?: string): Promise<bigint> {
+  const { provider } = initializeBlockchain(chainId);
+  const feeData = await provider.getFeeData();
   return feeData.gasPrice || BigInt(0);
 }
 
 /**
- * Gets wallet balance (ETH).
+ * Gets wallet balance (native token like ETH/BNB).
  *
  * Useful for checking if wallet has sufficient funds for transactions.
  *
- * @returns Wallet ETH balance
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
+ * @returns Wallet balance in native token
  */
-export async function getWalletBalance(): Promise<{
+export async function getWalletBalance(chainId?: string): Promise<{
   wei: string;
   ether: string;
 }> {
-  const { provider: p, wallet: w } = initializeBlockchain();
-  const balance = await p.getBalance(w.address);
+  const { provider, wallet } = initializeBlockchain(chainId);
+  const balance = await provider.getBalance(wallet.address);
 
   return {
     wei: balance.toString(),
@@ -188,6 +178,7 @@ export async function getWalletBalance(): Promise<{
  * @param promptHash - The keccak256 hash of the prompt
  * @param encodedPoints - The ABI-encoded activity points
  * @param actionSignature - The PZERO authorization signature
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
  * @returns Typed data containing domain, types, and request for signing
  *
  * @example
@@ -197,7 +188,8 @@ export async function getWalletBalance(): Promise<{
  *   BigInt(Math.floor(Date.now() / 1000) + 3600),
  *   promptHash,
  *   encodedPoints,
- *   pzeroSignature
+ *   pzeroSignature,
+ *   '56'
  * );
  */
 export async function getTypedDataForMetaTxMint(
@@ -206,7 +198,8 @@ export async function getTypedDataForMetaTxMint(
   deadline: bigint,
   promptHash: string,
   encodedPoints: string,
-  actionSignature: string
+  actionSignature: string,
+  chainId?: string
 ): Promise<{
   domain: {
     name: string;
@@ -225,14 +218,14 @@ export async function getTypedDataForMetaTxMint(
     data: string;
   };
 }> {
-  const contract = getPromptMinerContract();
-  const { wallet: w } = initializeBlockchain();
+  const contract = getPromptMinerContract(chainId);
+  const { wallet } = initializeBlockchain(chainId);
 
   // Use the SDK function to get typed data
   // contentURI is empty string for now (will be used for IPFS/Arweave URIs in the future)
   return await sdkGetTypedDataForMetaTxMint(
     contract,
-    w,
+    wallet,
     from,
     gas,
     deadline,
@@ -252,6 +245,7 @@ export async function getTypedDataForMetaTxMint(
  *
  * @param requestForSigning - The request data that was signed by the user
  * @param forwardSignature - The user's EIP-712 signature
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
  * @returns Transaction receipt from the forwarder execution
  *
  * @throws {Error} If meta-transaction execution fails
@@ -267,7 +261,8 @@ export async function getTypedDataForMetaTxMint(
  *     deadline: 1735401600n,
  *     data: "0x..."
  *   },
- *   "0xUserSignature..."
+ *   "0xUserSignature...",
+ *   '56'
  * );
  */
 export async function executeMetaTxMint(
@@ -280,9 +275,10 @@ export async function executeMetaTxMint(
     deadline: bigint;
     data: string;
   },
-  forwardSignature: string
+  forwardSignature: string,
+  chainId?: string
 ): Promise<ethers.TransactionReceipt> {
-  const { wallet: w } = initializeBlockchain();
+  const { wallet } = initializeBlockchain(chainId);
 
   console.log(`Building meta-transaction request...`);
   console.log(`- User (from): ${requestForSigning.from}`);
@@ -294,14 +290,14 @@ export async function executeMetaTxMint(
   const { request, erc2771Forwarder } = await sdkBuildRequest(
     requestForSigning,
     forwardSignature,
-    w
+    wallet
   );
 
   console.log(`Forward request built successfully`);
   console.log(`- Forwarder address: ${await erc2771Forwarder.getAddress()}`);
 
   // Connect the forwarder to our wallet (relayer)
-  const forwarderWithSigner = erc2771Forwarder.connect(w);
+  const forwarderWithSigner = erc2771Forwarder.connect(wallet);
 
   try {
     console.log(`Executing meta-transaction through forwarder...`);
@@ -355,6 +351,7 @@ export async function executeMetaTxMint(
  * @param contentURI - Content URI for metadata (empty string for now)
  * @param encodedPoints - The ABI-encoded activity points (actionData)
  * @param actionSignature - The PZERO authorization signature
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
  * @returns Transaction receipt
  *
  * @throws {Error} If mint transaction fails
@@ -366,7 +363,8 @@ export async function executeMetaTxMint(
  *   promptHash,
  *   "",
  *   encodedPoints,
- *   pzeroSignature  // Backend got this from PZERO
+ *   pzeroSignature,  // Backend got this from PZERO
+ *   '56'
  * );
  */
 export async function executeMint(
@@ -374,10 +372,11 @@ export async function executeMint(
   promptHash: string,
   contentURI: string,
   encodedPoints: string,
-  actionSignature: string
+  actionSignature: string,
+  chainId?: string
 ): Promise<ethers.TransactionReceipt> {
-  const contract = getPromptMinerContract();
-  const { wallet: w } = initializeBlockchain();
+  const contract = getPromptMinerContract(chainId);
+  const { wallet } = initializeBlockchain(chainId);
 
   console.log(`Executing direct mint transaction...`);
   console.log(`- Author: ${author}`);
@@ -415,7 +414,7 @@ export async function executeMint(
 
     // Enhanced error handling
     if (error.code === 'INSUFFICIENT_FUNDS') {
-      throw new Error(`Insufficient funds for gas. Wallet ${w.address} needs more ETH.`);
+      throw new Error(`Insufficient funds for gas. Wallet ${wallet.address} needs more native token.`);
     } else if (error.message?.includes('AUTHORIZATION_EXPIRED')) {
       throw new Error('PZERO authorization expired. Please request a new authorization.');
     } else if (error.message?.includes('INVALID_SIGNATURE')) {

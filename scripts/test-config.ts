@@ -41,7 +41,6 @@ async function runTests() {
     'PM_RPC_URL',
     'PM_CHAIN_ID',
     'PM_PROMPT_MINER_ADDRESS',
-    'PM_ACTIVITY_POINTS_ADDRESS',
     'PM_PRIVATE_KEY',
     'PM_PZERO_API_KEY',
     'PM_PZERO_API_URL',
@@ -81,7 +80,6 @@ async function runTests() {
   // Test 4: Validate Ethereum addresses
   const addresses = {
     PM_PROMPT_MINER_ADDRESS: process.env.PM_PROMPT_MINER_ADDRESS,
-    PM_ACTIVITY_POINTS_ADDRESS: process.env.PM_ACTIVITY_POINTS_ADDRESS,
   };
 
   for (const [name, address] of Object.entries(addresses)) {

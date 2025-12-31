@@ -29,17 +29,31 @@ export function hashPrompt(prompt: string): string {
  * Encodes activity points for contract interaction.
  *
  * Activity points must be ABI-encoded before being used in contract calls
- * and signature generation.
+ * and signature generation. Supports both single values and arrays.
  *
- * @param points - Activity points amount as a string (exact token amount in wei)
+ * @param points - Activity points amount as a string or array of strings (exact token amounts in wei)
  * @returns ABI-encoded activity points
  *
  * @example
+ * // Single value
  * const encoded = encodeActivityPoints("10"); // 10 tokens (wei)
- * const encoded = encodeActivityPoints("1000000000000000000"); // 1000000000000000000 tokens (wei)
+ * 
+ * // Array of values
+ * const encoded = encodeActivityPoints(["10", "15", "20", "30"]);
  */
-export function encodeActivityPoints(points: string): string {
-  // Parse as exact token amount (wei)
+export function encodeActivityPoints(points: string | string[]): string {
+  // Handle array of points
+  if (Array.isArray(points)) {
+    console.log("Encoding points as an array")
+    const pointsWei = points.map(p => BigInt(p));
+    
+    // ABI encode as uint256[]
+    return ethers.AbiCoder.defaultAbiCoder().encode(['uint256[]'], [pointsWei]);
+  }
+  
+  console.log("Encoding points as a single value");
+
+  // Handle single point value
   const pointsWei = BigInt(points);
 
   if (pointsWei < 0n) return '0x';

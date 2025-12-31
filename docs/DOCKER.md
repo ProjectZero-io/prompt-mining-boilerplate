@@ -132,7 +132,6 @@ docker run -d \
   -e PM_PZERO_API_URL=https://pm-gateway.projectzero.io/v1 \
   -e PM_PRIVATE_KEY=0xYourPrivateKey \
   -e PM_PROMPT_MINER_ADDRESS=0x... \
-  -e PM_ACTIVITY_POINTS_ADDRESS=0x... \
   -e PM_PROMPT_DO_ADDRESS=0x... \
   -e PM_DATA_INDEX_ADDRESS=0x... \
   --restart unless-stopped \
@@ -250,7 +249,6 @@ PM_PZERO_RETRY_ATTEMPTS=5
 
 # Smart Contracts (Production)
 PM_PROMPT_MINER_ADDRESS=0x...
-PM_ACTIVITY_POINTS_ADDRESS=0x...
 PM_PROMPT_DO_ADDRESS=0x...
 PM_DATA_INDEX_ADDRESS=0x...
 
