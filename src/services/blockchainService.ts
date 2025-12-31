@@ -8,6 +8,7 @@ import type {
   PromptMinerWithActivityPointsActionUpgradeableType,
 } from '@project_zero/prompt-mining-sdk';
 import { config, getChainConfig, getDefaultChainConfig } from '../config';
+import { getAndIncrementNonce } from './nonceManager';
 
 /**
  * Initializes blockchain provider and wallet for a specific chain.
@@ -302,10 +303,15 @@ export async function executeMetaTxMint(
   try {
     console.log(`Executing meta-transaction through forwarder...`);
 
+    // Get nonce for this chain
+    const actualChainId = chainId || getDefaultChainConfig().chainId;
+    const nonce = getAndIncrementNonce(actualChainId);
+
     // Execute the forward request
     // The forwarder will verify the signature and call the PromptMiner contract
     const tx = await forwarderWithSigner.execute(request, {
       gasLimit: request.gas + 50000n, // Add buffer for forwarder overhead
+      nonce,
     });
 
     console.log(`Meta-transaction submitted: ${tx.hash}`);
@@ -385,6 +391,10 @@ export async function executeMint(
   console.log(`- PZERO authorization: ${actionSignature.slice(0, 10)}...`);
 
   try {
+    // Get nonce for this chain
+    const actualChainId = chainId || getDefaultChainConfig().chainId;
+    const nonce = getAndIncrementNonce(actualChainId);
+
     // Call mint function on PromptMiner contract
     // Signature: mint(address author, bytes32 promptHash, string contentURI, bytes actionData, bytes actionSignature)
     // Note: Using full signature to call the specific overload (with author parameter)
@@ -396,6 +406,7 @@ export async function executeMint(
       actionSignature, // PZERO authorization signature
       {
         gasLimit: 500000, // Adjust based on contract complexity
+        nonce,
       }
     );
 
