@@ -278,7 +278,12 @@ export async function executeMetaTxMint(
   },
   forwardSignature: string,
   chainId?: string
-): Promise<ethers.TransactionReceipt> {
+): Promise<{
+  hash: string;
+  nonce: number;
+  from: string;
+  chainId: string;
+}> {
   const { wallet } = initializeBlockchain(chainId);
 
   console.log(`Building meta-transaction request...`);
@@ -315,15 +320,15 @@ export async function executeMetaTxMint(
     });
 
     console.log(`Meta-transaction submitted: ${tx.hash}`);
-    console.log(`Waiting for confirmation...`);
+    console.log(`⚠️ Returning immediately without waiting for confirmation`);
 
-    // Wait for transaction confirmation
-    const receipt = await tx.wait();
-
-    console.log(`Meta-transaction executed! Block: ${receipt!.blockNumber}`);
-    console.log(`   Gas used: ${receipt!.gasUsed.toString()}`);
-
-    return receipt!;
+    // Return transaction data immediately without waiting for confirmation
+    return {
+      hash: tx.hash,
+      nonce: tx.nonce,
+      from: tx.from,
+      chainId: actualChainId,
+    };
   } catch (error: any) {
     console.error(`Failed to execute meta-transaction:`, error.message);
 
@@ -380,7 +385,12 @@ export async function executeMint(
   encodedPoints: string,
   actionSignature: string,
   chainId?: string
-): Promise<ethers.TransactionReceipt> {
+): Promise<{
+  hash: string;
+  nonce: number;
+  from: string;
+  chainId: string;
+}> {
   const contract = getPromptMinerContract(chainId);
   const { wallet } = initializeBlockchain(chainId);
 
@@ -411,15 +421,15 @@ export async function executeMint(
     );
 
     console.log(`Transaction submitted: ${tx.hash}`);
-    console.log(`Waiting for confirmation...`);
+    console.log(`⚠️ Returning immediately without waiting for confirmation`);
 
-    // Wait for transaction confirmation
-    const receipt = await tx.wait();
-
-    console.log(`Prompt minted! Block: ${receipt!.blockNumber}`);
-    console.log(`   Gas used: ${receipt!.gasUsed.toString()}`);
-
-    return receipt!;
+    // Return transaction data immediately without waiting for confirmation
+    return {
+      hash: tx.hash,
+      nonce: tx.nonce,
+      from: tx.from,
+      chainId: actualChainId,
+    };
   } catch (error: any) {
     console.error(`Direct mint failed:`, error.message);
 
