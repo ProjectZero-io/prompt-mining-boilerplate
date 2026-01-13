@@ -367,23 +367,24 @@ export async function executeMetaTxMint(
   chainId?: string
 ): Promise<{
   transactionHash: string;
-  blockNumber: number;
+  chainId: string;
   from: string;
-  gasUsed: string;
+  nonce: number;
 }> {
   console.log('=== Meta-Transaction Execution Flow ===');
   console.log(`Relayer executing meta-transaction for user: ${requestForSigning.from}`);
 
-  const receipt = await blockchainService.executeMetaTxMint(requestForSigning, forwardSignature, chainId);
+  const tx = await blockchainService.executeMetaTxMint(requestForSigning, forwardSignature, chainId);
 
-  console.log(`   Meta-transaction executed! Tx: ${receipt.hash}`);
+  console.log(`   Meta-transaction submitted! Tx: ${tx.hash}`);
+  console.log(`   ⚠️ Transaction pending confirmation - track status with hash`);
   console.log('=== Meta-Transaction Complete ===\n');
 
   return {
-    transactionHash: receipt.hash,
-    blockNumber: receipt.blockNumber,
+    transactionHash: tx.hash,
+    chainId: tx.chainId,
     from: requestForSigning.from,
-    gasUsed: receipt.gasUsed.toString(),
+    nonce: tx.nonce,
   };
 }
 
@@ -425,8 +426,8 @@ export async function mintPromptForUser(
 ): Promise<{
   transactionHash: string;
   promptHash: string;
-  blockNumber: number;
-  gasUsed: string;
+  chainId: string;
+  nonce: number;
 }> {
   console.log('=== Backend-Signed Mint Flow ===');
   console.log(`Minting prompt for author: ${author}`);
@@ -467,7 +468,7 @@ export async function mintPromptForUser(
 
   // Step 5: Backend signs and submits transaction
   console.log(`5. Backend signing and submitting transaction...`);
-  const receipt = await blockchainService.executeMint(
+  const tx = await blockchainService.executeMint(
     author, // User who receives rewards
     promptHash, // Prompt hash
     '', // Content URI (empty for now)
@@ -475,15 +476,16 @@ export async function mintPromptForUser(
     authorization.signature, // PZERO authorization
     chainId
   );
-  console.log(`   Minted! Tx: ${receipt.hash}`);
+  console.log(`   Transaction submitted! Tx: ${tx.hash}`);
+  console.log(`   ⚠️ Transaction pending confirmation - track status with hash`);
 
   console.log('=== Backend-Signed Mint Complete ===\n');
 
   return {
-    transactionHash: receipt.hash,
+    transactionHash: tx.hash,
     promptHash,
-    blockNumber: receipt.blockNumber,
-    gasUsed: receipt.gasUsed.toString(),
+    chainId: tx.chainId,
+    nonce: tx.nonce,
   };
 }
 
