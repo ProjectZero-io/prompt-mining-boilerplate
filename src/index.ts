@@ -5,6 +5,7 @@ import { config, validateConfig } from './config';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
 import * as promptMiningService from './services/promptMiningService';
+import { initializeNonces } from './services/nonceManager';
 
 /**
  * Main application entry point.
@@ -32,6 +33,12 @@ try {
   console.error('\nPlease check your PM_RPC_URL and ensure blockchain is accessible.');
   process.exit(1);
 }
+
+// Initialize nonce manager
+initializeNonces(config.chains).catch((error) => {
+  console.error('Nonce manager initialization failed:', error.message);
+  console.error('\nWill attempt to continue, but transactions may fail.');
+});
 
 // Create Express app
 const app = express();

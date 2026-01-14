@@ -72,14 +72,17 @@ export interface PromptAuthorizationResponse {
  *
  * COMPANY-SPONSORED MODE: Transaction was submitted by company's wallet.
  * User receives rewards automatically without signing transaction.
+ * Transaction is submitted but not confirmed yet - frontend/backend should track status using transactionHash.
  */
 export interface MintPromptResponse {
-  /** Transaction hash of the mint operation */
+  /** Transaction hash of the mint operation (pending confirmation) */
   transactionHash: string;
   /** Hash of the minted prompt */
   promptHash: string;
-  /** Block number where the transaction was included */
-  blockNumber: number;
+  /** Chain ID where transaction was submitted */
+  chainId: string;
+  /** Nonce used for the transaction */
+  nonce: number;
 }
 
 /**

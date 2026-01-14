@@ -181,11 +181,12 @@ router.post(
  *   "success": true,
  *   "data": {
  *     "transactionHash": "0x...",
- *     "blockNumber": 12345,
+ *     "chainId": "72080",
  *     "from": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb1",
- *     "gasUsed": "450000"
+ *     "nonce": 42
  *   }
  * }
+ * Note: Transaction submitted but not yet confirmed
  */
 router.post(
   '/execute-metatx',
@@ -231,10 +232,11 @@ router.post(
  *   "data": {
  *     "transactionHash": "0x...",
  *     "promptHash": "0x...",
- *     "blockNumber": 12345,
- *     "gasUsed": "450000"
+ *     "chainId": "72080",
+ *     "nonce": 42
  *   }
  * }
+ * Note: Transaction submitted but not yet confirmed
  */
 router.post(
   '/mint-for-user',

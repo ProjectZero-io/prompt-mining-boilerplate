@@ -8,6 +8,7 @@ import type {
   PromptMinerWithActivityPointsActionUpgradeableType,
 } from '@project_zero/prompt-mining-sdk';
 import { config, getChainConfig, getDefaultChainConfig } from '../config';
+import { getAndIncrementNonce } from './nonceManager';
 
 /**
  * Initializes blockchain provider and wallet for a specific chain.
@@ -277,7 +278,12 @@ export async function executeMetaTxMint(
   },
   forwardSignature: string,
   chainId?: string
-): Promise<ethers.TransactionReceipt> {
+): Promise<{
+  hash: string;
+  nonce: number;
+  from: string;
+  chainId: string;
+}> {
   const { wallet } = initializeBlockchain(chainId);
 
   console.log(`Building meta-transaction request...`);
@@ -302,22 +308,27 @@ export async function executeMetaTxMint(
   try {
     console.log(`Executing meta-transaction through forwarder...`);
 
+    // Get nonce for this chain
+    const actualChainId = chainId || getDefaultChainConfig().chainId;
+    const nonce = getAndIncrementNonce(actualChainId);
+
     // Execute the forward request
     // The forwarder will verify the signature and call the PromptMiner contract
     const tx = await forwarderWithSigner.execute(request, {
       gasLimit: request.gas + 50000n, // Add buffer for forwarder overhead
+      nonce,
     });
 
     console.log(`Meta-transaction submitted: ${tx.hash}`);
-    console.log(`Waiting for confirmation...`);
+    console.log(`⚠️ Returning immediately without waiting for confirmation`);
 
-    // Wait for transaction confirmation
-    const receipt = await tx.wait();
-
-    console.log(`Meta-transaction executed! Block: ${receipt!.blockNumber}`);
-    console.log(`   Gas used: ${receipt!.gasUsed.toString()}`);
-
-    return receipt!;
+    // Return transaction data immediately without waiting for confirmation
+    return {
+      hash: tx.hash,
+      nonce: tx.nonce,
+      from: tx.from,
+      chainId: actualChainId,
+    };
   } catch (error: any) {
     console.error(`Failed to execute meta-transaction:`, error.message);
 
@@ -374,7 +385,12 @@ export async function executeMint(
   encodedPoints: string,
   actionSignature: string,
   chainId?: string
-): Promise<ethers.TransactionReceipt> {
+): Promise<{
+  hash: string;
+  nonce: number;
+  from: string;
+  chainId: string;
+}> {
   const contract = getPromptMinerContract(chainId);
   const { wallet } = initializeBlockchain(chainId);
 
@@ -385,6 +401,10 @@ export async function executeMint(
   console.log(`- PZERO authorization: ${actionSignature.slice(0, 10)}...`);
 
   try {
+    // Get nonce for this chain
+    const actualChainId = chainId || getDefaultChainConfig().chainId;
+    const nonce = getAndIncrementNonce(actualChainId);
+
     // Call mint function on PromptMiner contract
     // Signature: mint(address author, bytes32 promptHash, string contentURI, bytes actionData, bytes actionSignature)
     // Note: Using full signature to call the specific overload (with author parameter)
@@ -396,19 +416,20 @@ export async function executeMint(
       actionSignature, // PZERO authorization signature
       {
         gasLimit: 500000, // Adjust based on contract complexity
+        nonce,
       }
     );
 
     console.log(`Transaction submitted: ${tx.hash}`);
-    console.log(`Waiting for confirmation...`);
+    console.log(`⚠️ Returning immediately without waiting for confirmation`);
 
-    // Wait for transaction confirmation
-    const receipt = await tx.wait();
-
-    console.log(`Prompt minted! Block: ${receipt!.blockNumber}`);
-    console.log(`   Gas used: ${receipt!.gasUsed.toString()}`);
-
-    return receipt!;
+    // Return transaction data immediately without waiting for confirmation
+    return {
+      hash: tx.hash,
+      nonce: tx.nonce,
+      from: tx.from,
+      chainId: actualChainId,
+    };
   } catch (error: any) {
     console.error(`Direct mint failed:`, error.message);
 
@@ -422,5 +443,44 @@ export async function executeMint(
     }
 
     throw new Error(`Mint transaction failed: ${error.message}`);
+  }
+}
+
+/**
+ * Gets the receipt of a transaction.
+ *
+ * @param hash - Transaction hash
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
+ * @returns Transaction receipt or null if not found/pending
+ *
+ * @example
+ * const receipt = await getTransactionReceipt("0x...", '56');
+ * if (receipt) {
+ *   console.log('Block:', receipt.blockNumber);
+ * } else {
+ *   console.log('Transaction pending or not found');
+ * }
+ */
+export async function getTransactionReceipt(
+  hash: string,
+  chainId?: string
+): Promise<ethers.TransactionReceipt | null> {
+  const { provider } = initializeBlockchain(chainId);
+
+  try {
+    console.log(`Fetching transaction receipt for: ${hash}`);
+    
+    const receipt = await provider.getTransactionReceipt(hash);
+    
+    if (receipt) {
+      console.log(`Transaction found in block ${receipt.blockNumber}`);
+    } else {
+      console.log('Transaction not found or still pending');
+    }
+
+    return receipt;
+  } catch (error: any) {
+    console.error(`Failed to fetch transaction receipt:`, error.message);
+    throw new Error(`Failed to fetch transaction receipt: ${error.message}`);
   }
 }
