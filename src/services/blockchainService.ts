@@ -445,3 +445,42 @@ export async function executeMint(
     throw new Error(`Mint transaction failed: ${error.message}`);
   }
 }
+
+/**
+ * Gets the receipt of a transaction.
+ *
+ * @param hash - Transaction hash
+ * @param chainId - Optional chain ID. If not provided, uses default chain.
+ * @returns Transaction receipt or null if not found/pending
+ *
+ * @example
+ * const receipt = await getTransactionReceipt("0x...", '56');
+ * if (receipt) {
+ *   console.log('Block:', receipt.blockNumber);
+ * } else {
+ *   console.log('Transaction pending or not found');
+ * }
+ */
+export async function getTransactionReceipt(
+  hash: string,
+  chainId?: string
+): Promise<ethers.TransactionReceipt | null> {
+  const { provider } = initializeBlockchain(chainId);
+
+  try {
+    console.log(`Fetching transaction receipt for: ${hash}`);
+    
+    const receipt = await provider.getTransactionReceipt(hash);
+    
+    if (receipt) {
+      console.log(`Transaction found in block ${receipt.blockNumber}`);
+    } else {
+      console.log('Transaction not found or still pending');
+    }
+
+    return receipt;
+  } catch (error: any) {
+    console.error(`Failed to fetch transaction receipt:`, error.message);
+    throw new Error(`Failed to fetch transaction receipt: ${error.message}`);
+  }
+}
